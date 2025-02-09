@@ -1,4 +1,4 @@
-package com.carmate.controller;
+package com.carmate.controller.old;
 
 import com.carmate.entity.insurance.InsuranceResponse;
 import com.carmate.service.external.InsuranceServiceImpl;

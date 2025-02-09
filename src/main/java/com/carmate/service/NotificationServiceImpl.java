@@ -1,17 +1,22 @@
 package com.carmate.service;
 
+import com.carmate.entity.account.Account;
 import com.carmate.entity.car.Car;
 import com.carmate.entity.notification.Notification;
+import com.carmate.entity.notification.NotificationDTO;
 import com.carmate.entity.notification.NotificationType;
+import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
 import com.carmate.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class NotificationServiceImpl {
@@ -21,6 +26,8 @@ public class NotificationServiceImpl {
 
     @Autowired
     private NotificationRepository notificationRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
     public void generateNotifications(){
         notificationRepository.deleteAll();
@@ -37,7 +44,7 @@ public class NotificationServiceImpl {
                             .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + vignetteExpirationDays +" дни.")
                             .notificationTextEn("Vignette with plate number " + car.getPlateNumber() + " expires in " + vignetteExpirationDays + " days.")
                             .notificationDate(currentDate)
-                            .deviceID(car.getDeviceID())
+                            .account(car.getAccount())
                             .carName(car.getName())
                             .build();
 
@@ -49,7 +56,7 @@ public class NotificationServiceImpl {
                         .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
                         .notificationTextEn("Vignette with plate number " + car.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
-                        .deviceID(car.getDeviceID())
+                        .account(car.getAccount())
                         .carName(car.getName())
                         .build();
 
@@ -65,7 +72,7 @@ public class NotificationServiceImpl {
                             .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + insuranceExpirationDays +" дни.")
                             .notificationTextEn("Insurance with plate number " + car.getPlateNumber() + " expires in " + insuranceExpirationDays + " days.")
                             .notificationDate(currentDate)
-                            .deviceID(car.getDeviceID())
+                            .account(car.getAccount())
                             .carName(car.getName())
                             .build();
 
@@ -77,7 +84,7 @@ public class NotificationServiceImpl {
                         .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
                         .notificationTextEn("Insurance with plate number " + car.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
-                        .deviceID(car.getDeviceID())
+                        .account(car.getAccount())
                         .carName(car.getName())
                         .build();
 
@@ -94,7 +101,7 @@ public class NotificationServiceImpl {
                             .notificationText("Техническият преглед на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + technicalReviewExpirationDays +" дни.")
                             .notificationTextEn("Technical review with plate number " + car.getPlateNumber() + " expires in " + technicalReviewExpirationDays + " days.")
                             .notificationDate(currentDate)
-                            .deviceID(car.getDeviceID())
+                            .account(car.getAccount())
                             .carName(car.getName())
                             .build();
 
@@ -119,7 +126,7 @@ public class NotificationServiceImpl {
                         .notificationText("Имате "+ car.getObligationsCount() + " неплатени глоби с МПС с регистрационен номер " + car.getPlateNumber() + " !")
                         .notificationTextEn("You have "+ car.getObligationsCount() + " unpaid fines with vehicle with plate number " + car.getPlateNumber() + " !")
                         .notificationDate(currentDate)
-                        .deviceID(car.getDeviceID())
+                        .account(car.getAccount())
                         .carName(car.getName())
                         .build();
 
@@ -132,15 +139,33 @@ public class NotificationServiceImpl {
     }
 
 
-    public List<Notification> getAllNotificationsByDateAndDeviceId(String deviceID){
-        Date currentDate = new Date();
-        return notificationRepository.findByDateAndDeviceID(currentDate, deviceID);
+    public List<NotificationDTO> getAllNotificationsByDateAndAccount(){
+        String username = getPrincipalUserName();
+        Long userId = accountRepository.findByUsername(username)
+                .map(Account::getId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Notification> notifications = notificationRepository.findByDateAndAccount(new Date(), userId);
+
+        return notifications.stream()
+                .map(notification -> new NotificationDTO(
+                        notification.getCarName(),
+                        notification.getNotificationText(),
+                        notification.getNotificationTextEn(),
+                        notification.getNotificationDate())
+                        )
+                .collect(Collectors.toList());
     }
 
-    public List<Notification> getAllNotificationsBydDeviceId(String deviceID){
-        return notificationRepository.findAllByDeviceID( deviceID);
+    public List<Notification> getAllNotificationsByAccount(){
+        return notificationRepository.findAllByAccount(accountRepository.findByUsername(getPrincipalUserName()).get());
     }
+
     private long getDaysBetween(Date dateFrom, Date dateTo){
         return TimeUnit.MILLISECONDS.toDays(dateTo.getTime() - dateFrom.getTime());
+    }
+
+    private String getPrincipalUserName() {
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 }

@@ -1,5 +1,6 @@
 package com.carmate.entity.notification;
 
+import com.carmate.entity.account.Account;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +26,10 @@ public class Notification {
     private String notificationTextEn;
 
     private String deviceID;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
 
     private Date notificationDate;
 

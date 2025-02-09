@@ -7,12 +7,15 @@ import com.carmate.entity.insurance.InsuranceResponse;
 import com.carmate.entity.obligation.ObligationResponseResult;
 import com.carmate.entity.technicalReview.TechnicalReviewResponse;
 import com.carmate.entity.vignette.VignetteResponse;
+import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
+import com.carmate.security.util.JwtUtil;
 import com.carmate.service.external.InsuranceServiceImpl;
 import com.carmate.service.external.ObligationServiceImpl;
 import com.carmate.service.external.TechnicalReviewServiceImpl;
 import com.carmate.service.external.VignetteServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -40,21 +43,30 @@ public class CarServiceImpl {
     @Autowired
     private TechnicalReviewServiceImpl technicalReviewService;
 
+    @Autowired
+    private AccountRepository accountRepository;
+
     public void saveCar(CarSaveDTO carSaveDTO) {
         if(carSaveDTO != null) {
             Car car = new Car();
+            String username = getPrincipalUserName();
+            car.setAccount(accountRepository.findByUsername(username).get());
             car.setName(carSaveDTO.getName());
             car.setPlateNumber(carSaveDTO.getPlateNumber());
             car.setEgn(carSaveDTO.getEgn());
             car.setDeviceID(carSaveDTO.getDeviceID());
             externalServicesCheck(car);
             carRepository.save(car);
+            System.out.println("Saved car: " + carSaveDTO.getPlateNumber() + " to account: " + username);
         }
     }
 
-    public List<CarDTO> getCarsByDeviceID(String deviceID) {
-        System.out.println("Get car: " + deviceID);
-        return carRepository.findAllByDeviceIDOrderById(deviceID)
+    public List<CarDTO> getCars() {
+        String username = getPrincipalUserName();
+        System.out.println("Get car: " + username);
+        return accountRepository.findByUsername(username)
+                .get()
+                .getCars()
                 .stream()
                 .map(car -> CarDTO.builder()
                         .id(car.getId())
@@ -108,8 +120,8 @@ public class CarServiceImpl {
         if(insuranceResponse.getInsurer() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
             try {
-                car.setStartInsuranceActiveDate(dateFormat.parse(insuranceResponse.getStartDate()));
-                car.setEndInsuranceActiveDate(dateFormat.parse(insuranceResponse.getEndDate()));
+                car.setStartInsuranceActiveDate(dateFormat.parse(insuranceResponse.getStartDate().replace("г.", "").replace("ч.", "").replaceAll("\\s+", " ").trim()));
+                car.setEndInsuranceActiveDate(dateFormat.parse(insuranceResponse.getEndDate().replace("г.", "").replace("ч.", "").replaceAll("\\s+", " ").trim()));
                 car.setInsurer(insuranceResponse.getInsurer());
                 car.setIsActiveInsurance(Boolean.TRUE);
             } catch (ParseException e) {
@@ -153,5 +165,9 @@ public class CarServiceImpl {
         }
         car.setIsActiveTechnicalReview(isValid);
         car.setEndTechnicalReviewActiveDate(expiryDate);
+    }
+
+    private String getPrincipalUserName() {
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 }

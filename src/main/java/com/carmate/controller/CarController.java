@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 public class CarController {
     @Autowired
@@ -22,16 +21,16 @@ public class CarController {
         return ResponseEntity.ok(car);
     }
 
-    @GetMapping("/get-car/{deviceID}")
-    public ResponseEntity<List<CarDTO>> getCar(@PathVariable String deviceID) {
-        List<CarDTO> resultCars = carService.getCarsByDeviceID(deviceID);
+    @GetMapping("/get-car")
+    public ResponseEntity<List<CarDTO>> getCar() {
+        List<CarDTO> resultCars = carService.getCars();
         return ResponseEntity.ok(resultCars);
     }
 
     @DeleteMapping("/delete-car/{carID}")
     public ResponseEntity<Void> deleteCar(@PathVariable Long carID) {
         System.out.println("Delete car: " + carID);
-         //carService.deleteCar(carID); // Uncomment when the actual delete operation is implemented
-        return ResponseEntity.ok().build(); // Returns an HTTP 200 OK response with no body
+         carService.deleteCar(carID);
+        return ResponseEntity.ok().build();
     }
 }

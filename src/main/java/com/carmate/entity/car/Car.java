@@ -1,9 +1,7 @@
 package com.carmate.entity.car;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.carmate.entity.account.Account;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,6 +20,10 @@ public class Car {
     private String plateNumber;
 
     private String egn;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
 
     private String deviceID;
 
