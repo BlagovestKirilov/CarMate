@@ -1,6 +1,5 @@
 package com.carmate.controller;
 
-import com.carmate.entity.car.Car;
 import com.carmate.entity.car.CarDTO;
 import com.carmate.entity.car.CarSaveDTO;
 import com.carmate.service.CarServiceImpl;

@@ -9,7 +9,6 @@ import com.carmate.entity.technicalReview.TechnicalReviewResponse;
 import com.carmate.entity.vignette.VignetteResponse;
 import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
-import com.carmate.security.util.JwtUtil;
 import com.carmate.service.external.InsuranceServiceImpl;
 import com.carmate.service.external.ObligationServiceImpl;
 import com.carmate.service.external.TechnicalReviewServiceImpl;
