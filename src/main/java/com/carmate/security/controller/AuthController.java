@@ -29,4 +29,10 @@ public class AuthController {
         String token = authService.login(request.get("email"), request.get("password"));
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+    @PostMapping("/confirmRegistration")
+    public ResponseEntity<?> confirmRegistration(@RequestBody Map<String, String> request) {
+        String token = authService.confirmRegistration(request.get("email"), request.get("password"), request.get("code"));
+        return ResponseEntity.ok(Map.of("token", token));
+    }
 }

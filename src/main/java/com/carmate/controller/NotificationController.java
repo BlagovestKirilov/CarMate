@@ -2,7 +2,7 @@ package com.carmate.controller;
 
 import com.carmate.entity.notification.Notification;
 import com.carmate.entity.notification.NotificationDTO;
-import com.carmate.service.NotificationServiceImpl;
+import com.carmate.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ import java.util.List;
 public class NotificationController {
 
     @Autowired
-    private NotificationServiceImpl notificationService;
+    private NotificationService notificationService;
 
     @GetMapping("/get-notification")
     public ResponseEntity<List<NotificationDTO>> getNotifications() {

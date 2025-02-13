@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class VignetteServiceImpl {
+public class VignetteService {
     @Autowired
     private RestTemplate restTemplate;
     private static final String BG_TOLL_ENDPOINT = "https://check.bgtoll.bg/check/vignette/plate/BG/";
 
-    private static final Logger logger = LoggerFactory.getLogger(VignetteServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(VignetteService.class);
 
     public VignetteResponse vignetteCheck(String plateNumber) {
         try {

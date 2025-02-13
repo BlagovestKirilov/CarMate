@@ -23,7 +23,7 @@ public class Account implements UserDetails {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String username;
+    private String email;
 
     @Column(nullable = false)
     private String password;
@@ -45,7 +45,7 @@ public class Account implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @Override

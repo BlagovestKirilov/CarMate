@@ -1,7 +1,7 @@
 package com.carmate.controller.old;
 
 import com.carmate.entity.technicalReview.TechnicalReviewResponse;
-import com.carmate.service.external.TechnicalReviewServiceImpl;
+import com.carmate.service.external.TechnicalReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TechnicalReviewController {
 
     @Autowired
-    private TechnicalReviewServiceImpl technicalReviewService;
+    private TechnicalReviewService technicalReviewService;
 
     @GetMapping("/check-technical-review/{plateNumber}")
     public ResponseEntity<TechnicalReviewResponse> checkTechnicalReview(@PathVariable String plateNumber) {

@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-public class NotificationServiceImpl {
+public class NotificationService {
 
     @Autowired
     private CarRepository carRepository;
@@ -141,7 +141,7 @@ public class NotificationServiceImpl {
 
     public List<NotificationDTO> getAllNotificationsByDateAndAccount(){
         String username = getPrincipalUserName();
-        Long userId = accountRepository.findByUsername(username)
+        Long userId = accountRepository.findByEmail(username)
                 .map(Account::getId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -158,7 +158,7 @@ public class NotificationServiceImpl {
     }
 
     public List<Notification> getAllNotificationsByAccount(){
-        return notificationRepository.findAllByAccount(accountRepository.findByUsername(getPrincipalUserName()).get());
+        return notificationRepository.findAllByAccount(accountRepository.findByEmail(getPrincipalUserName()).get());
     }
 
     private long getDaysBetween(Date dateFrom, Date dateTo){

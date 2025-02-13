@@ -2,7 +2,8 @@ package com.carmate.scheduler;
 
 import com.carmate.entity.car.Car;
 import com.carmate.repository.CarRepository;
-import com.carmate.service.CarServiceImpl;
+import com.carmate.service.CarService;
+import com.carmate.service.EmailService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,7 +18,10 @@ public class Scheduler  {
     private CarRepository carRepository;
 
     @Autowired
-    private CarServiceImpl carService;
+    private CarService carService;
+
+    @Autowired
+    private EmailService emailService;
 
    // @Scheduled(cron = "0 * * * * *")
     public void schedulerChecks(){
@@ -25,7 +29,6 @@ public class Scheduler  {
         insuranceScheduler();
         technicalReviewScheduler();
         obligationScheduler();
-        System.out.println("end");
     }
 
     @Transactional

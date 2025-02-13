@@ -9,10 +9,10 @@ import com.carmate.entity.technicalReview.TechnicalReviewResponse;
 import com.carmate.entity.vignette.VignetteResponse;
 import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
-import com.carmate.service.external.InsuranceServiceImpl;
-import com.carmate.service.external.ObligationServiceImpl;
-import com.carmate.service.external.TechnicalReviewServiceImpl;
-import com.carmate.service.external.VignetteServiceImpl;
+import com.carmate.service.external.InsuranceService;
+import com.carmate.service.external.ObligationService;
+import com.carmate.service.external.TechnicalReviewService;
+import com.carmate.service.external.VignetteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,22 +25,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-public class CarServiceImpl {
+public class CarService {
 
     @Autowired
     private CarRepository carRepository;
 
     @Autowired
-    private VignetteServiceImpl vignetteService;
+    private VignetteService vignetteService;
 
     @Autowired
-    private InsuranceServiceImpl insuranceService;
+    private InsuranceService insuranceService;
 
     @Autowired
-    private ObligationServiceImpl obligationService;
+    private ObligationService obligationService;
 
     @Autowired
-    private TechnicalReviewServiceImpl technicalReviewService;
+    private TechnicalReviewService technicalReviewService;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -49,7 +49,7 @@ public class CarServiceImpl {
         if(carSaveDTO != null) {
             Car car = new Car();
             String username = getPrincipalUserName();
-            car.setAccount(accountRepository.findByUsername(username).get());
+            car.setAccount(accountRepository.findByEmail(username).get());
             car.setName(carSaveDTO.getName());
             car.setPlateNumber(carSaveDTO.getPlateNumber());
             car.setEgn(carSaveDTO.getEgn());
@@ -63,7 +63,7 @@ public class CarServiceImpl {
     public List<CarDTO> getCars() {
         String username = getPrincipalUserName();
         System.out.println("Get car: " + username);
-        return accountRepository.findByUsername(username)
+        return accountRepository.findByEmail(username)
                 .get()
                 .getCars()
                 .stream()

@@ -1,7 +1,7 @@
 package com.carmate.controller.old;
 
 import com.carmate.entity.vignette.VignetteResponse;
-import com.carmate.service.external.VignetteServiceImpl;
+import com.carmate.service.external.VignetteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VignetteController {
 
     @Autowired
-    private VignetteServiceImpl vignetteCheckService;
+    private VignetteService vignetteCheckService;
 
     @GetMapping("/check-vignette/{plateNumber}")
     public ResponseEntity<VignetteResponse> checkVignette(@PathVariable String plateNumber) {

@@ -11,7 +11,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class TechnicalReviewServiceImpl {
+public class TechnicalReviewService {
 
     private static final String TECHNICAL_REVIEW_ENDPOINT = "https://myve.bg/api/get/gtp";
     public TechnicalReviewResponse technicalReviewCheck(String plateNumber) {

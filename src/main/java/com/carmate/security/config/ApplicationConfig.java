@@ -45,7 +45,7 @@ public class ApplicationConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login").permitAll() // Allow register & login
+                        .requestMatchers("/auth/register", "/auth/login", "/auth/confirmRegistration").permitAll() // Allow register & login
                         .anyRequest().authenticated() // Secure other endpoints
                 )
          .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class); // Add JWT filter
@@ -59,7 +59,7 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> accountRepository.findByUsername(username)
+        return username -> accountRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

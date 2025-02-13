@@ -2,7 +2,7 @@ package com.carmate.controller;
 
 import com.carmate.entity.car.CarDTO;
 import com.carmate.entity.car.CarSaveDTO;
-import com.carmate.service.CarServiceImpl;
+import com.carmate.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 public class CarController {
     @Autowired
-    CarServiceImpl carService;
+    CarService carService;
 
     @PostMapping("/save-car")
     public ResponseEntity<CarSaveDTO> addCar(@RequestBody CarSaveDTO car) {

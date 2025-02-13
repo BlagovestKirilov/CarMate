@@ -1,7 +1,7 @@
 package com.carmate.controller.old;
 
 import com.carmate.entity.insurance.InsuranceResponse;
-import com.carmate.service.external.InsuranceServiceImpl;
+import com.carmate.service.external.InsuranceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class InsuranceController {
 
     @Autowired
-    private InsuranceServiceImpl insuranceService;
+    private InsuranceService insuranceService;
 
     @GetMapping("/check-insurance/{plateNumber}")
     public ResponseEntity<InsuranceResponse> checkInsurance(@PathVariable String plateNumber) {
