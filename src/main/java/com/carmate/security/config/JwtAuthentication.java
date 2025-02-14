@@ -18,6 +18,6 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return email; // Return the user's email
+        return email;
     }
 }
