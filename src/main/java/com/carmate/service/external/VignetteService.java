@@ -1,6 +1,6 @@
 package com.carmate.service.external;
 
-import com.carmate.entity.vignette.VignetteResponse;
+import com.carmate.entity.vignette.external.VignetteResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

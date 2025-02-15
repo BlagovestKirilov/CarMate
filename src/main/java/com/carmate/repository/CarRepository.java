@@ -9,11 +9,10 @@ import java.util.List;
 
 @Repository
 public interface CarRepository extends JpaRepository<Car, Long> {
-    List<Car> findAllByDeviceIDOrderById(String deviceID);
 
-    List<Car> findAllByEndVignetteActiveDateIsBeforeOrIsActiveVignetteIsFalse(Date date);
+    List<Car> findAllByVignette_EndDateIsBeforeOrVignette_IsActiveIsFalse(Date endDate);
 
-    List<Car> findAllByEndInsuranceActiveDateIsBeforeOrIsActiveInsuranceIsFalse(Date date);
+    List<Car> findAllByInsurance_EndDateIsBeforeOrVignette_IsActiveIsFalse(Date endDate);
 
-    List<Car> findAllByEndTechnicalReviewActiveDateIsBeforeOrIsActiveTechnicalReviewIsFalse(Date date);
+    List<Car> findAllByTechnicalReview_EndDateIsBeforeOrVignette_IsActiveIsFalse(Date endDate);
 }

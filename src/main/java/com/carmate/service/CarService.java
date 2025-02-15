@@ -3,12 +3,15 @@ package com.carmate.service;
 import com.carmate.entity.car.Car;
 import com.carmate.entity.car.CarDTO;
 import com.carmate.entity.car.CarSaveDTO;
-import com.carmate.entity.insurance.InsuranceResponse;
-import com.carmate.entity.obligation.ObligationResponseResult;
-import com.carmate.entity.technicalReview.TechnicalReviewResponse;
-import com.carmate.entity.vignette.VignetteResponse;
-import com.carmate.repository.AccountRepository;
-import com.carmate.repository.CarRepository;
+import com.carmate.entity.insurance.Insurance;
+import com.carmate.entity.insurance.external.InsuranceResponse;
+import com.carmate.entity.obligation.Obligation;
+import com.carmate.entity.obligation.external.ObligationResponseResult;
+import com.carmate.entity.technicalReview.TechnicalReview;
+import com.carmate.entity.technicalReview.external.TechnicalReviewResponse;
+import com.carmate.entity.vignette.Vignette;
+import com.carmate.entity.vignette.external.VignetteResponse;
+import com.carmate.repository.*;
 import com.carmate.service.external.InsuranceService;
 import com.carmate.service.external.ObligationService;
 import com.carmate.service.external.TechnicalReviewService;
@@ -73,17 +76,17 @@ public class CarService {
                         .plateNumber(car.getPlateNumber())
                         .egn(car.getEgn())
                         .deviceID(car.getDeviceID())
-                        .isActiveVignette(car.getIsActiveVignette())
-                        .startVignetteActiveDate(car.getStartVignetteActiveDate())
-                        .endVignetteActiveDate(car.getEndVignetteActiveDate())
-                        .isActiveInsurance(car.getIsActiveInsurance())
-                        .insurer(car.getInsurer())
-                        .startInsuranceActiveDate(car.getStartInsuranceActiveDate())
-                        .endInsuranceActiveDate(car.getEndInsuranceActiveDate())
-                        .obligationsCount(car.getObligationsCount())
-                        .obligationSumAmount(car.getObligationSumAmount())
-                        .isActiveTechnicalReview(car.getIsActiveTechnicalReview())
-                        .endTechnicalReviewActiveDate(car.getEndTechnicalReviewActiveDate())
+                        .isActiveVignette(car.getVignette().getIsActive())
+                        .startVignetteActiveDate(car.getVignette().getStartDate())
+                        .endVignetteActiveDate(car.getVignette().getEndDate())
+                        .isActiveInsurance(car.getInsurance().getIsActive())
+                        .insurer(car.getInsurance().getInsurer())
+                        .startInsuranceActiveDate(car.getInsurance().getStartDate())
+                        .endInsuranceActiveDate(car.getInsurance().getEndDate())
+                        .obligationsCount(car.getObligation().getObligationsCount())
+                        .obligationSumAmount(car.getObligation().getObligationSumAmount())
+                        .isActiveTechnicalReview(car.getTechnicalReview().getIsActive())
+                        .endTechnicalReviewActiveDate(car.getTechnicalReview().getEndDate())
                         .build())
                 .toList();
     }
@@ -100,41 +103,62 @@ public class CarService {
     }
     public void vignetteCheck(Car car){
         VignetteResponse vignetteResponse = vignetteService.vignetteCheck(car.getPlateNumber());
+
+        Vignette vignette = car.getVignette() != null ? car.getVignette() : new Vignette();
+
         if(vignetteResponse.getVignette() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
             try {
-                car.setStartVignetteActiveDate(dateFormat.parse(vignetteResponse.getVignette().getValidityDateFromFormated()));
-                car.setEndVignetteActiveDate(dateFormat.parse(vignetteResponse.getVignette().getValidityDateToFormated()));
-                car.setIsActiveVignette(Boolean.TRUE);
+                vignette.setStartDate(dateFormat.parse(vignetteResponse.getVignette().getValidityDateFromFormated()));
+                vignette.setEndDate(dateFormat.parse(vignetteResponse.getVignette().getValidityDateToFormated()));
+                vignette.setIsActive(Boolean.TRUE);
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
         } else {
-            car.setIsActiveVignette(Boolean.FALSE);
+            vignette.setIsActive(Boolean.FALSE);
         }
+
+        vignette.setCar(car);
+        car.setVignette(vignette);
     }
 
     public void insuranceCheck(Car car){
         InsuranceResponse insuranceResponse = insuranceService.insuranceCheck(car.getPlateNumber());
+        Insurance insurance = car.getInsurance() != null ? car.getInsurance() : new Insurance();
         if(insuranceResponse.getInsurer() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
             try {
-                car.setStartInsuranceActiveDate(dateFormat.parse(insuranceResponse.getStartDate().replace("г.", "").replace("ч.", "").replaceAll("\\s+", " ").trim()));
-                car.setEndInsuranceActiveDate(dateFormat.parse(insuranceResponse.getEndDate().replace("г.", "").replace("ч.", "").replaceAll("\\s+", " ").trim()));
-                car.setInsurer(insuranceResponse.getInsurer());
-                car.setIsActiveInsurance(Boolean.TRUE);
+                insurance.setStartDate(dateFormat.parse(insuranceResponse.getStartDate().replace("г.", "").replace("ч.", "").replaceAll("\\s+", " ").trim()));
+                insurance.setEndDate(dateFormat.parse(insuranceResponse.getEndDate().replace("г.", "").replace("ч.", "").replaceAll("\\s+", " ").trim()));
+                insurance.setInsurer(insuranceResponse.getInsurer());
+                insurance.setIsActive(Boolean.TRUE);
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
         } else {
-            car.setIsActiveInsurance(Boolean.FALSE);
+            insurance.setIsActive(Boolean.FALSE);
         }
+
+        insurance.setCar(car);
+        car.setInsurance(insurance);
     }
 
     public void obligationCheck(Car car){
         ObligationResponseResult obligationResponseResult = obligationService.obligationCheck(car.getPlateNumber(), car.getEgn());
-        car.setObligationsCount(obligationResponseResult.getObligationsCount());
-        car.setObligationSumAmount(obligationResponseResult.getObligationSumAmount());
+
+        Obligation obligation = car.getObligation() != null ? car.getObligation() : new Obligation();
+
+        if(obligationResponseResult != null) {
+            obligation.setObligationsCount(obligationResponseResult.getObligationsCount());
+            obligation.setObligationSumAmount(obligationResponseResult.getObligationSumAmount());
+        } else {
+            obligation.setObligationsCount(0);
+            obligation.setObligationSumAmount(0);
+        }
+
+        obligation.setCar(car);
+        car.setObligation(obligation);
     }
 
     public void technicalReviewCheck(Car car){
@@ -162,8 +186,13 @@ public class CarService {
                 }
             }
         }
-        car.setIsActiveTechnicalReview(isValid);
-        car.setEndTechnicalReviewActiveDate(expiryDate);
+
+        TechnicalReview technicalReview = car.getTechnicalReview() != null ? car.getTechnicalReview() : new TechnicalReview();
+        technicalReview.setIsActive(isValid);
+        technicalReview.setEndDate(expiryDate);
+
+        technicalReview.setCar(car);
+        car.setTechnicalReview(technicalReview);
     }
 
     private String getPrincipalUserName() {

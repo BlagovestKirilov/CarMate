@@ -1,4 +1,4 @@
-package com.carmate.entity.technicalReview;
+package com.carmate.entity.technicalReview.external;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package com.carmate.entity.vignette;
+package com.carmate.entity.vignette.external;
 
 import lombok.Getter;
 import lombok.Setter;

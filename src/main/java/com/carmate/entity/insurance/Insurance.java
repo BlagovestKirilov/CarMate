@@ -1,5 +1,4 @@
-package com.carmate.entity.vignette;
-
+package com.carmate.entity.insurance;
 
 import com.carmate.entity.car.Car;
 import jakarta.persistence.*;
@@ -13,17 +12,16 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Vignette {
+public class Insurance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "vignette")
-    private Car car;
-
     private Boolean isActive;
-
+    private String insurer;
     private Date startDate;
-
     private Date endDate;
+
+    @OneToOne(mappedBy = "insurance")
+    private Car car;
 }

@@ -1,6 +1,6 @@
 package com.carmate.controller.old;
 
-import com.carmate.entity.obligation.ObligationResponseResult;
+import com.carmate.entity.obligation.external.ObligationResponseResult;
 import com.carmate.service.external.ObligationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

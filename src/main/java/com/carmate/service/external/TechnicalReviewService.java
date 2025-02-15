@@ -1,6 +1,6 @@
 package com.carmate.service.external;
 
-import com.carmate.entity.technicalReview.TechnicalReviewResponse;
+import com.carmate.entity.technicalReview.external.TechnicalReviewResponse;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;

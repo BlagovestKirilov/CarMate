@@ -1,4 +1,4 @@
-package com.carmate.entity.insurance;
+package com.carmate.entity.insurance.external;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,6 +1,6 @@
 package com.carmate.controller.old;
 
-import com.carmate.entity.insurance.InsuranceResponse;
+import com.carmate.entity.insurance.external.InsuranceResponse;
 import com.carmate.service.external.InsuranceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

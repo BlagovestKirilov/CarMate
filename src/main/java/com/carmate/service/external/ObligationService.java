@@ -1,9 +1,9 @@
 package com.carmate.service.external;
 
-import com.carmate.entity.obligation.Obligation;
-import com.carmate.entity.obligation.ObligationResponse;
-import com.carmate.entity.obligation.ObligationResponseResult;
-import com.carmate.entity.obligation.ObligationsData;
+import com.carmate.entity.obligation.external.Obligation;
+import com.carmate.entity.obligation.external.ObligationResponse;
+import com.carmate.entity.obligation.external.ObligationResponseResult;
+import com.carmate.entity.obligation.external.ObligationsData;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

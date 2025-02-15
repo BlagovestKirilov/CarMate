@@ -3,7 +3,6 @@ package com.carmate.scheduler;
 import com.carmate.entity.car.Car;
 import com.carmate.repository.CarRepository;
 import com.carmate.service.CarService;
-import com.carmate.service.EmailService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,10 +19,7 @@ public class Scheduler  {
     @Autowired
     private CarService carService;
 
-    @Autowired
-    private EmailService emailService;
-
-   // @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 5 * * *")
     public void schedulerChecks(){
         vignetteScheduler();
         insuranceScheduler();
@@ -34,7 +30,7 @@ public class Scheduler  {
     @Transactional
     public void vignetteScheduler(){
         Date currentDate = new Date();
-        List<Car> carsForVignetteCheck = carRepository.findAllByEndVignetteActiveDateIsBeforeOrIsActiveVignetteIsFalse(currentDate);
+        List<Car> carsForVignetteCheck = carRepository.findAllByVignette_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
         for(Car car : carsForVignetteCheck){
             carService.vignetteCheck(car);
             carRepository.save(car);
@@ -44,7 +40,7 @@ public class Scheduler  {
     @Transactional
     public void insuranceScheduler(){
         Date currentDate = new Date();
-        List<Car> carsForInsuranceCheck = carRepository.findAllByEndInsuranceActiveDateIsBeforeOrIsActiveInsuranceIsFalse(currentDate);
+        List<Car> carsForInsuranceCheck = carRepository.findAllByInsurance_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
         for(Car car : carsForInsuranceCheck){
             carService.insuranceCheck(car);
             carRepository.save(car);
@@ -54,7 +50,7 @@ public class Scheduler  {
     @Transactional
     public void technicalReviewScheduler(){
         Date currentDate = new Date();
-        List<Car> carsForTechnicalReviewCheck = carRepository.findAllByEndTechnicalReviewActiveDateIsBeforeOrIsActiveTechnicalReviewIsFalse(currentDate);
+        List<Car> carsForTechnicalReviewCheck = carRepository.findAllByTechnicalReview_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
         for(Car car : carsForTechnicalReviewCheck){
             carService.technicalReviewCheck(car);
             carRepository.save(car);

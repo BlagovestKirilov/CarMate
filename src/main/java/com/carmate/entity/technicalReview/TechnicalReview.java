@@ -1,4 +1,4 @@
-package com.carmate.entity.obligation;
+package com.carmate.entity.technicalReview;
 
 import com.carmate.entity.car.Car;
 import jakarta.persistence.*;
@@ -7,20 +7,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Obligation {
+public class TechnicalReview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "obligation")
+    @OneToOne(mappedBy = "technicalReview")
     private Car car;
 
-    private Integer obligationsCount;
+    private Boolean isActive;
 
-    private Integer obligationSumAmount;
+    private Date endDate;
 }

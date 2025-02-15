@@ -35,8 +35,8 @@ public class NotificationService {
         Date currentDate = new Date();
         List<Notification> resultNotification = new ArrayList<>();
         for(Car car : cars){
-            if(car.getIsActiveVignette()) {
-                long vignetteExpirationDays = getDaysBetween(currentDate, car.getEndVignetteActiveDate());
+            if(car.getVignette().getIsActive()) {
+                long vignetteExpirationDays = getDaysBetween(currentDate, car.getVignette().getEndDate());
 
                 if(vignetteExpirationDays < 300) {
                     Notification vignetteNotification = Notification.builder()
@@ -63,8 +63,8 @@ public class NotificationService {
                 resultNotification.add(vignetteNotification);
             }
 
-            if(car.getIsActiveInsurance()) {
-                long insuranceExpirationDays = getDaysBetween(currentDate, car.getEndInsuranceActiveDate());
+            if(car.getInsurance().getIsActive()) {
+                long insuranceExpirationDays = getDaysBetween(currentDate, car.getInsurance().getEndDate());
 
                 if(insuranceExpirationDays < 300) {
                     Notification insuranceNotification = Notification.builder()
@@ -91,9 +91,9 @@ public class NotificationService {
                 resultNotification.add(insuranceNotification);
             }
 
-            if(car.getIsActiveTechnicalReview()) {
-                long technicalReviewExpirationDays = car.getEndTechnicalReviewActiveDate() != null ?
-                        getDaysBetween(currentDate, car.getEndTechnicalReviewActiveDate()) : 365L;
+            if(car.getTechnicalReview().getIsActive()) {
+                long technicalReviewExpirationDays = car.getTechnicalReview().getEndDate() != null ?
+                        getDaysBetween(currentDate, car.getTechnicalReview().getEndDate()) : 365L;
 
                 if(technicalReviewExpirationDays < 300) {
                     Notification technicalReviewNotification = Notification.builder()
@@ -120,11 +120,11 @@ public class NotificationService {
                 resultNotification.add(technicalReviewNotification);
             }
 
-            if(car.getObligationsCount() > 0){
+            if(car.getObligation().getObligationsCount() > 0){
                 Notification obligationNotification = Notification.builder()
                         .notificationType(NotificationType.OBLIGATION)
-                        .notificationText("Имате "+ car.getObligationsCount() + " неплатени глоби с МПС с регистрационен номер " + car.getPlateNumber() + " !")
-                        .notificationTextEn("You have "+ car.getObligationsCount() + " unpaid fines with vehicle with plate number " + car.getPlateNumber() + " !")
+                        .notificationText("Имате "+ car.getObligation().getObligationsCount() + " неплатени глоби с МПС с регистрационен номер " + car.getPlateNumber() + " !")
+                        .notificationTextEn("You have "+ car.getObligation().getObligationsCount() + " unpaid fines with vehicle with plate number " + car.getPlateNumber() + " !")
                         .notificationDate(currentDate)
                         .account(car.getAccount())
                         .carName(car.getName())

@@ -1,6 +1,6 @@
 package com.carmate.controller.old;
 
-import com.carmate.entity.vignette.VignetteResponse;
+import com.carmate.entity.vignette.external.VignetteResponse;
 import com.carmate.service.external.VignetteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
