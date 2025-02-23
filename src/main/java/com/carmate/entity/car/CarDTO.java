@@ -1,7 +1,6 @@
 package com.carmate.entity.car;
 
 import lombok.*;
-
 import java.util.Date;
 
 @Getter
@@ -41,4 +40,8 @@ public class CarDTO {
     private Boolean isActiveTechnicalReview;
 
     private Date endTechnicalReviewActiveDate;
+
+    private Long oilChangeOdometer;
+
+    private Date oilChangeDate;
 }

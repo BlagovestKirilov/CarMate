@@ -9,6 +9,8 @@ import com.carmate.entity.vignette.Vignette;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -25,6 +27,7 @@ public class Car {
     @Column(nullable = false)
     private String plateNumber;
 
+    @Column
     private String egn;
 
     @ManyToOne
@@ -51,4 +54,10 @@ public class Car {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "obligation_id", referencedColumnName = "id")
     private Obligation obligation;
+
+    @Column
+    private Long oilChangeOdometer;
+
+    @Column
+    private Date oilChangeDate;
 }

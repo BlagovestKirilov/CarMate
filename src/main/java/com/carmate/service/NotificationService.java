@@ -20,14 +20,20 @@ import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
+    private final CarRepository carRepository;
+    private final NotificationRepository notificationRepository;
+    private final AccountRepository accountRepository;
 
     @Autowired
-    private CarRepository carRepository;
-
-    @Autowired
-    private NotificationRepository notificationRepository;
-    @Autowired
-    private AccountRepository accountRepository;
+    public NotificationService(
+            CarRepository carRepository,
+            NotificationRepository notificationRepository,
+            AccountRepository accountRepository
+    ) {
+        this.carRepository = carRepository;
+        this.notificationRepository = notificationRepository;
+        this.accountRepository = accountRepository;
+    }
 
     public void generateNotifications(){
         notificationRepository.deleteAll();
