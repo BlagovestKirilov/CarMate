@@ -11,6 +11,8 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Builder
 public class TripSheetDTO {
+    private Long id;
+
     private Long carID;
 
     private LocalDate departureDate;

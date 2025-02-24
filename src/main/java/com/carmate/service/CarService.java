@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -240,6 +241,30 @@ public class CarService {
             car.setOilChangeDate(new Date());
             carRepository.save(car);
         }
+    }
+
+    public List<TripSheetDTO> getTripSheets(Long carID) {
+        Car car = carRepository.findById(carID).orElse(null);
+        List<TripSheetDTO> tripSheets = new ArrayList<>();
+        if(car != null) {
+            tripSheets = tripSheetRepository.findAllByCarOrderByArrivalDateDescArrivalTimeDesc(car)
+                    .stream()
+                    .map(tripSheet -> TripSheetDTO.builder()
+                            .id(tripSheet.getId())
+                            .carID(carID)
+                            .departureDate(tripSheet.getDepartureDate())
+                            .departureTime(tripSheet.getDepartureTime())
+                            .departureLocation(tripSheet.getDepartureLocation())
+                            .tripReason(tripSheet.getTripReason())
+                            .arrivalDate(tripSheet.getArrivalDate())
+                            .arrivalTime(tripSheet.getArrivalTime())
+                            .arrivalLocation(tripSheet.getArrivalLocation())
+                            .startOdometer(tripSheet.getStartOdometer())
+                            .endOdometer(tripSheet.getEndOdometer())
+                            .build())
+                    .toList();
+        }
+        return tripSheets;
     }
 
     private String getPrincipalUserName() {

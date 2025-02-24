@@ -50,4 +50,10 @@ public class CarController {
         carService.saveOilChange(oilChangeDTO);
         return ResponseEntity.ok(oilChangeDTO);
     }
+
+    @GetMapping("/get-trip-sheet/{carID}")
+    public ResponseEntity<List<TripSheetDTO>> saveTripSheet(@PathVariable Long carID) {
+        List<TripSheetDTO> tripSheetDTOS = carService.getTripSheets(carID);
+        return ResponseEntity.ok(tripSheetDTOS);
+    }
 }
