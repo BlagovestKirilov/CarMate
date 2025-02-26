@@ -34,8 +34,7 @@ public class CarController {
 
     @DeleteMapping("/delete-car/{carID}")
     public ResponseEntity<Void> deleteCar(@PathVariable Long carID) {
-        LOGGER.info("Delete car: {}", carID);
-         carService.deleteCar(carID);
+        carService.deleteCar(carID);
         return ResponseEntity.ok().build();
     }
 
@@ -52,8 +51,20 @@ public class CarController {
     }
 
     @GetMapping("/get-trip-sheet/{carID}")
-    public ResponseEntity<List<TripSheetDTO>> saveTripSheet(@PathVariable Long carID) {
+    public ResponseEntity<List<TripSheetDTO>> getTripSheet(@PathVariable Long carID) {
         List<TripSheetDTO> tripSheetDTOS = carService.getTripSheets(carID);
         return ResponseEntity.ok(tripSheetDTOS);
+    }
+
+    @GetMapping("/get-trip-sheet-admin")
+    public ResponseEntity<List<TripSheetDTO>> getTripSheetAdmin() {
+        List<TripSheetDTO> tripSheetDTOS = carService.getTripSheetsAdmin();
+        return ResponseEntity.ok(tripSheetDTOS);
+    }
+
+    @DeleteMapping("/delete-trip-sheet/{tripSheetID}")
+    public ResponseEntity<Void> deleteTripSheet(@PathVariable Long tripSheetID) {
+        carService.deleteTripSheet(tripSheetID);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,5 +1,6 @@
 package com.carmate.service;
 
+import com.carmate.entity.account.Account;
 import com.carmate.entity.car.Car;
 import com.carmate.entity.car.CarDTO;
 import com.carmate.entity.car.CarSaveDTO;
@@ -14,6 +15,7 @@ import com.carmate.entity.tripSheet.TripSheet;
 import com.carmate.entity.tripSheet.TripSheetDTO;
 import com.carmate.entity.vignette.Vignette;
 import com.carmate.entity.vignette.external.VignetteResponse;
+import com.carmate.enums.AccountRoleEnum;
 import com.carmate.repository.*;
 import com.carmate.service.external.InsuranceService;
 import com.carmate.service.external.ObligationService;
@@ -82,9 +84,11 @@ public class CarService {
     public List<CarDTO> getCars() {
         String username = getPrincipalUserName();
         System.out.println("Get car: " + username);
-        return accountRepository.findByEmail(username)
-                .get()
-                .getCars()
+
+        Account account = accountRepository.findByEmail(username).get();
+        List<Car> cars = account.getRole().equals(AccountRoleEnum.USER) ?
+                account.getCars() : carRepository.findAll();
+        return  cars
                 .stream()
                 .map(car -> CarDTO.builder()
                         .id(car.getId())
@@ -109,8 +113,9 @@ public class CarService {
                 .toList();
     }
 
-    public void deleteCar(Long carId){
-        carRepository.deleteById(carId);
+    public void deleteCar(Long carID){
+        carRepository.deleteById(carID);
+        LOGGER.info("Delete car: {}", carID);
     }
 
     private void externalServicesCheck(Car car){
@@ -245,26 +250,42 @@ public class CarService {
 
     public List<TripSheetDTO> getTripSheets(Long carID) {
         Car car = carRepository.findById(carID).orElse(null);
-        List<TripSheetDTO> tripSheets = new ArrayList<>();
+        List<TripSheetDTO> tripSheetsDTOs = new ArrayList<>();
         if(car != null) {
-            tripSheets = tripSheetRepository.findAllByCarOrderByArrivalDateDescArrivalTimeDesc(car)
-                    .stream()
-                    .map(tripSheet -> TripSheetDTO.builder()
-                            .id(tripSheet.getId())
-                            .carID(carID)
-                            .departureDate(tripSheet.getDepartureDate())
-                            .departureTime(tripSheet.getDepartureTime())
-                            .departureLocation(tripSheet.getDepartureLocation())
-                            .tripReason(tripSheet.getTripReason())
-                            .arrivalDate(tripSheet.getArrivalDate())
-                            .arrivalTime(tripSheet.getArrivalTime())
-                            .arrivalLocation(tripSheet.getArrivalLocation())
-                            .startOdometer(tripSheet.getStartOdometer())
-                            .endOdometer(tripSheet.getEndOdometer())
-                            .build())
-                    .toList();
+            List<TripSheet> tripSheets = tripSheetRepository.findAllByCarOrderByArrivalDateDescArrivalTimeDesc(car);
+            tripSheetsDTOs =  mapToTripSheetDTOs(tripSheets);
         }
-        return tripSheets;
+        return tripSheetsDTOs;
+    }
+
+    public List<TripSheetDTO> getTripSheetsAdmin() {
+        List<TripSheet> tripSheets = tripSheetRepository.findAll();
+        return mapToTripSheetDTOs(tripSheets);
+    }
+
+    private List<TripSheetDTO> mapToTripSheetDTOs(List<TripSheet> tripSheets) {
+        return tripSheets
+                .stream()
+                .map(tripSheet -> TripSheetDTO.builder()
+                        .id(tripSheet.getId())
+                        .carID(tripSheet.getCar().getId())
+                        .carName(tripSheet.getCar().getName())
+                        .departureDate(tripSheet.getDepartureDate())
+                        .departureTime(tripSheet.getDepartureTime())
+                        .departureLocation(tripSheet.getDepartureLocation())
+                        .tripReason(tripSheet.getTripReason())
+                        .arrivalDate(tripSheet.getArrivalDate())
+                        .arrivalTime(tripSheet.getArrivalTime())
+                        .arrivalLocation(tripSheet.getArrivalLocation())
+                        .startOdometer(tripSheet.getStartOdometer())
+                        .endOdometer(tripSheet.getEndOdometer())
+                        .build())
+                .toList();
+    }
+
+    public void deleteTripSheet(Long tripSheetID) {
+        tripSheetRepository.deleteById(tripSheetID);
+        LOGGER.info("Delete trip sheet : {}", tripSheetID);
     }
 
     private String getPrincipalUserName() {

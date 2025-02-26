@@ -2,6 +2,7 @@ package com.carmate.security.util;
 
 import com.carmate.entity.account.Account;
 import com.carmate.entity.account.AccountRegistrationRequest;
+import com.carmate.enums.AccountRoleEnum;
 import com.carmate.enums.RegistrationStatus;
 import com.carmate.repository.AccountRegistrationRequestRepository;
 import com.carmate.repository.AccountRepository;
@@ -48,25 +49,29 @@ public class AuthService {
             Account newUser = new Account();
             newUser.setEmail(email);
             newUser.setPassword(encoder.encode(password));
+            newUser.setRole(AccountRoleEnum.USER);
             userRepository.save(newUser);
             accountRegistrationRequest.setStatus(RegistrationStatus.CONFIRMED);
+            accountRegistrationRequest.setRole(AccountRoleEnum.USER);
             accountRegistrationRequestRepository.save(accountRegistrationRequest);
         } else{
             throw new RuntimeException("Invalid code!");
         }
 
-        return jwtUtil.generateToken(email);
+        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString());
     }
 
-    private void generateAccountRegistrationRequest(String email, String password) {
+    private AccountRegistrationRequest generateAccountRegistrationRequest(String email, String password) {
         AccountRegistrationRequest accountRegistrationRequest = new AccountRegistrationRequest();
         accountRegistrationRequest.setEmail(email);
         accountRegistrationRequest.setPassword(encoder.encode(password));
+        accountRegistrationRequest.setRole(AccountRoleEnum.USER);
         String randomNumber = getRandomNumber();
         LOGGER.info(randomNumber);
         emailService.sendEmail(email, "Confirmation code", "Your confirmation code is " + randomNumber);
         accountRegistrationRequest.setConfirmationCode(encoder.encode(randomNumber));
         accountRegistrationRequestRepository.save(accountRegistrationRequest);
+        return accountRegistrationRequest;
     }
 
     public String register(String email, String password) {
@@ -75,9 +80,9 @@ public class AuthService {
             throw new RuntimeException("Email already in use");
         }
 
-        generateAccountRegistrationRequest(email, password);
+        AccountRegistrationRequest accountRegistrationRequest = generateAccountRegistrationRequest(email, password);
 
-        return jwtUtil.generateToken(email);
+        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString());
     }
 
     public String login(String email, String password) {
@@ -93,7 +98,7 @@ public class AuthService {
         }
 
         // Generate new token and save
-        String newToken = jwtUtil.generateToken(email);
+        String newToken = jwtUtil.generateToken(email, user.getRole().toString());
         user.setToken(newToken);
         userRepository.save(user);
         return newToken;

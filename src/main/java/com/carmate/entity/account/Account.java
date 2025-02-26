@@ -2,6 +2,7 @@ package com.carmate.entity.account;
 
 import com.carmate.entity.car.Car;
 import com.carmate.entity.notification.Notification;
+import com.carmate.enums.AccountRoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,7 +29,8 @@ public class Account implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    private String role = "USER";
+    @Enumerated(EnumType.STRING)
+    private AccountRoleEnum role;
 
     private String token;
 

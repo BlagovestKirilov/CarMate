@@ -15,6 +15,8 @@ public class TripSheetDTO {
 
     private Long carID;
 
+    private String carName;
+
     private LocalDate departureDate;
 
     private LocalTime departureTime;
