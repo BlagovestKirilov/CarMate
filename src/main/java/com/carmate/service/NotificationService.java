@@ -5,12 +5,18 @@ import com.carmate.entity.car.Car;
 import com.carmate.entity.notification.Notification;
 import com.carmate.entity.notification.NotificationDTO;
 import com.carmate.entity.notification.NotificationType;
+import com.carmate.enums.LanguageEnum;
 import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
 import com.carmate.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -161,6 +167,49 @@ public class NotificationService {
                         notification.getNotificationDate())
                         )
                 .collect(Collectors.toList());
+    }
+
+    public void saveFCMToken(String fcmToken) {
+        Account account = getAccountByPrincipal();
+        account.setFcmToken(fcmToken);
+        accountRepository.save(account);
+    }
+
+    public void sendNotification(String title, String body) {
+        Account account = getAccountByPrincipal();
+            String expoPushUrl = "https://exp.host/--/api/v2/push/send";
+
+            String requestBody = "{"
+                    + "\"to\": \"" + account.getFcmToken() + "\","
+                    + "\"title\": \"" + title + "\","
+                    + "\"body\": \"" + body + "\""
+                    + "}";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json");
+
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(expoPushUrl, HttpMethod.POST, entity, String.class);
+
+            System.out.println("Notification sent: " + response.getBody());
+    }
+
+    private Account getAccountByPrincipal(){
+        String username = getPrincipalUserName();
+        return accountRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public void changeAccountLanguage(String language) {
+        Account account = getAccountByPrincipal();
+        if(language.equals("en")){
+            account.setLanguage(LanguageEnum.ENGLISH);
+        } else {
+            account.setLanguage(LanguageEnum.BULGARIAN);
+        }
+        accountRepository.save(account);
     }
 
     public List<Notification> getAllNotificationsByAccount(){

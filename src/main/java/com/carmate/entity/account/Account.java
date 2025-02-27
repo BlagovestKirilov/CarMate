@@ -3,6 +3,7 @@ package com.carmate.entity.account;
 import com.carmate.entity.car.Car;
 import com.carmate.entity.notification.Notification;
 import com.carmate.enums.AccountRoleEnum;
+import com.carmate.enums.LanguageEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,7 +33,12 @@ public class Account implements UserDetails {
     @Enumerated(EnumType.STRING)
     private AccountRoleEnum role;
 
+    @Enumerated(EnumType.STRING)
+    private LanguageEnum language = LanguageEnum.BULGARIAN;
+
     private String token;
+
+    private String fcmToken;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
     private List<Car> cars;

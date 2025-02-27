@@ -3,6 +3,7 @@ package com.carmate.security.util;
 import com.carmate.entity.account.Account;
 import com.carmate.entity.account.AccountRegistrationRequest;
 import com.carmate.enums.AccountRoleEnum;
+import com.carmate.enums.LanguageEnum;
 import com.carmate.enums.RegistrationStatus;
 import com.carmate.repository.AccountRegistrationRequestRepository;
 import com.carmate.repository.AccountRepository;
@@ -10,6 +11,7 @@ import com.carmate.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,27 +20,30 @@ import java.util.Random;
 
 @Service
 public class AuthService {
-    @Autowired
-    private AccountRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder encoder;
-
+    private final AccountRepository accountRepository;
+    private final PasswordEncoder encoder;
     private final JwtUtil jwtUtil;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private Random random;
+    private final EmailService emailService;
+    private final Random random;
+    private final AccountRegistrationRequestRepository accountRegistrationRequestRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
-    private AccountRegistrationRequestRepository accountRegistrationRequestRepository;
-
-    public AuthService(JwtUtil jwtUtil) {
+    public AuthService(
+            AccountRepository accountRepository,
+            PasswordEncoder encoder,
+            JwtUtil jwtUtil,
+            EmailService emailService,
+            Random random,
+            AccountRegistrationRequestRepository accountRegistrationRequestRepository
+    ) {
+        this.accountRepository = accountRepository;
+        this.encoder = encoder;
         this.jwtUtil = jwtUtil;
+        this.emailService = emailService;
+        this.random = random;
+        this.accountRegistrationRequestRepository = accountRegistrationRequestRepository;
     }
 
     public String confirmRegistration(String email, String password, String code) {
@@ -50,7 +55,7 @@ public class AuthService {
             newUser.setEmail(email);
             newUser.setPassword(encoder.encode(password));
             newUser.setRole(AccountRoleEnum.USER);
-            userRepository.save(newUser);
+            accountRepository.save(newUser);
             accountRegistrationRequest.setStatus(RegistrationStatus.CONFIRMED);
             accountRegistrationRequest.setRole(AccountRoleEnum.USER);
             accountRegistrationRequestRepository.save(accountRegistrationRequest);
@@ -58,7 +63,7 @@ public class AuthService {
             throw new RuntimeException("Invalid code!");
         }
 
-        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString());
+        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString(), LanguageEnum.BULGARIAN.toString());
     }
 
     private AccountRegistrationRequest generateAccountRegistrationRequest(String email, String password) {
@@ -75,18 +80,18 @@ public class AuthService {
     }
 
     public String register(String email, String password) {
-        Optional<Account> existingUser = userRepository.findByEmail(email);
+        Optional<Account> existingUser = accountRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             throw new RuntimeException("Email already in use");
         }
 
         AccountRegistrationRequest accountRegistrationRequest = generateAccountRegistrationRequest(email, password);
 
-        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString());
+        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString(), LanguageEnum.BULGARIAN.toString());
     }
 
     public String login(String email, String password) {
-        Account user = userRepository.findByEmail(email)
+        Account user = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         if (!encoder.matches(password, user.getPassword())) {
@@ -98,13 +103,30 @@ public class AuthService {
         }
 
         // Generate new token and save
-        String newToken = jwtUtil.generateToken(email, user.getRole().toString());
+        String newToken = jwtUtil.generateToken(email, user.getRole().toString(), user.getLanguage().toString());
         user.setToken(newToken);
-        userRepository.save(user);
+        accountRepository.save(user);
         return newToken;
+    }
+
+    public void logout(){
+        Account account = getAccountByPrincipal();
+        account.setToken(null);
+        account.setFcmToken(null);
+        accountRepository.save(account);
     }
 
     private String getRandomNumber(){
         return String.valueOf(100000 + random.nextInt(900000));
+    }
+
+    private Account getAccountByPrincipal(){
+        String username = getPrincipalUserName();
+        return accountRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private String getPrincipalUserName() {
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 }

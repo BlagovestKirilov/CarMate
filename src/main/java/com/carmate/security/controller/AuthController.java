@@ -35,4 +35,10 @@ public class AuthController {
         String token = authService.confirmRegistration(request.get("email"), request.get("password"), request.get("code"));
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        authService.logout();
+        return ResponseEntity.ok().body("Logged out successfully");
+    }
 }

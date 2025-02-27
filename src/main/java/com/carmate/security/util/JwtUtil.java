@@ -3,6 +3,7 @@ package com.carmate.security.util;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.carmate.enums.LanguageEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -16,10 +17,12 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expirationTime;
 
-    public String generateToken(String email, String role) {
+    public String generateToken(String email, String role, String language) {
+        language = language.equals(LanguageEnum.BULGARIAN.toString()) ? "bg" : "en";
         return JWT.create()
                 .withSubject(email)
                 .withClaim("role", role)
+                .withClaim("language", language)
                 .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
                 .sign(Algorithm.HMAC256(secret));
     }
