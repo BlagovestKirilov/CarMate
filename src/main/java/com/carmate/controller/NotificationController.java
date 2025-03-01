@@ -43,7 +43,6 @@ public class NotificationController {
         return "FCM token saved successfully.";
     }
 
-    // Endpoint to send a test notification
     @GetMapping("/send")
     public String sendTestNotification() {
         String title = "Test Notification";

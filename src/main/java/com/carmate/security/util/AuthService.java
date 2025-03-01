@@ -1,10 +1,13 @@
 package com.carmate.security.util;
 
 import com.carmate.entity.account.Account;
+import com.carmate.entity.account.AccountForgotPasswordRequest;
 import com.carmate.entity.account.AccountRegistrationRequest;
 import com.carmate.enums.AccountRoleEnum;
+import com.carmate.enums.ForgotPasswordStatus;
 import com.carmate.enums.LanguageEnum;
 import com.carmate.enums.RegistrationStatus;
+import com.carmate.repository.AccountForgotPasswordRequestRepository;
 import com.carmate.repository.AccountRegistrationRequestRepository;
 import com.carmate.repository.AccountRepository;
 import com.carmate.service.EmailService;
@@ -26,6 +29,7 @@ public class AuthService {
     private final EmailService emailService;
     private final Random random;
     private final AccountRegistrationRequestRepository accountRegistrationRequestRepository;
+    private final AccountForgotPasswordRequestRepository accountForgotPasswordRequestRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 
@@ -36,91 +40,171 @@ public class AuthService {
             JwtUtil jwtUtil,
             EmailService emailService,
             Random random,
-            AccountRegistrationRequestRepository accountRegistrationRequestRepository
-    ) {
+            AccountRegistrationRequestRepository accountRegistrationRequestRepository,
+            AccountForgotPasswordRequestRepository accountForgotPasswordRequestRepository) {
         this.accountRepository = accountRepository;
         this.encoder = encoder;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
         this.random = random;
         this.accountRegistrationRequestRepository = accountRegistrationRequestRepository;
+        this.accountForgotPasswordRequestRepository = accountForgotPasswordRequestRepository;
     }
 
-    public String confirmRegistration(String email, String password, String code) {
+    public void confirmRegistration(String email, String password, String code) {
         AccountRegistrationRequest accountRegistrationRequest = accountRegistrationRequestRepository
                 .findTopByEmailOrderByDateDesc(email).orElseThrow();
         if (encoder.matches(password, accountRegistrationRequest.getPassword())
-        && encoder.matches(code, accountRegistrationRequest.getConfirmationCode())) {
+                && encoder.matches(code, accountRegistrationRequest.getConfirmationCode())) {
             Account newUser = new Account();
             newUser.setEmail(email);
+            newUser.setAccountName(accountRegistrationRequest.getAccountName());
             newUser.setPassword(encoder.encode(password));
             newUser.setRole(AccountRoleEnum.USER);
             accountRepository.save(newUser);
             accountRegistrationRequest.setStatus(RegistrationStatus.CONFIRMED);
             accountRegistrationRequest.setRole(AccountRoleEnum.USER);
             accountRegistrationRequestRepository.save(accountRegistrationRequest);
-        } else{
+        } else {
             throw new RuntimeException("Invalid code!");
         }
-
-        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString(), LanguageEnum.BULGARIAN.toString());
     }
 
-    private AccountRegistrationRequest generateAccountRegistrationRequest(String email, String password) {
+
+    private AccountRegistrationRequest generateAccountRegistrationRequest(String email, String password, String accountName) {
         AccountRegistrationRequest accountRegistrationRequest = new AccountRegistrationRequest();
         accountRegistrationRequest.setEmail(email);
+        accountRegistrationRequest.setAccountName(accountName);
         accountRegistrationRequest.setPassword(encoder.encode(password));
         accountRegistrationRequest.setRole(AccountRoleEnum.USER);
         String randomNumber = getRandomNumber();
-        LOGGER.info(randomNumber);
         emailService.sendEmail(email, "Confirmation code", "Your confirmation code is " + randomNumber);
         accountRegistrationRequest.setConfirmationCode(encoder.encode(randomNumber));
         accountRegistrationRequestRepository.save(accountRegistrationRequest);
         return accountRegistrationRequest;
     }
 
-    public String register(String email, String password) {
+    public String register(String email, String password, String accountName) {
         Optional<Account> existingUser = accountRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             throw new RuntimeException("Email already in use");
         }
 
-        AccountRegistrationRequest accountRegistrationRequest = generateAccountRegistrationRequest(email, password);
+        AccountRegistrationRequest accountRegistrationRequest = generateAccountRegistrationRequest(email, password, accountName);
 
         return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString(), LanguageEnum.BULGARIAN.toString());
     }
 
     public String login(String email, String password) {
-        Account user = accountRepository.findByEmail(email)
+        Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-        if (!encoder.matches(password, user.getPassword())) {
+        if (!encoder.matches(password, account.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
 
-        if (user.getToken() != null && jwtUtil.validateToken(user.getToken()) != null) {
-            return user.getToken(); // Return existing valid token
+        if (account.getToken() != null && jwtUtil.validateToken(account.getToken()) != null) {
+            return account.getToken();
         }
 
-        // Generate new token and save
-        String newToken = jwtUtil.generateToken(email, user.getRole().toString(), user.getLanguage().toString());
-        user.setToken(newToken);
-        accountRepository.save(user);
+        String newToken = jwtUtil.generateToken(email, account.getRole().toString(), account.getLanguage().toString());
+        account.setToken(newToken);
+        accountRepository.save(account);
+        LOGGER.info("{} logged in", account.getEmail());
         return newToken;
     }
 
-    public void logout(){
+    public void logout() {
         Account account = getAccountByPrincipal();
         account.setToken(null);
         account.setFcmToken(null);
         accountRepository.save(account);
     }
 
-    private String getRandomNumber(){
+    public String forgotPassword(String email) {
+        Optional<Account> existingUser = accountRepository.findByEmail(email);
+        if (existingUser.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        AccountForgotPasswordRequest accountForgotPasswordRequest = new AccountForgotPasswordRequest();
+        accountForgotPasswordRequest.setEmail(email);
+        String randomNumber = getRandomNumber();
+        if (existingUser.get().getLanguage().equals(LanguageEnum.BULGARIAN)) {
+            emailService.sendEmail(email, "Забравена парола", "Вашият код за потвърждение е " + randomNumber);
+        } else {
+            emailService.sendEmail(email, "Forgot password", "Your confirmation code is " + randomNumber);
+        }
+
+        accountForgotPasswordRequest.setConfirmationCode(encoder.encode(randomNumber));
+        String token = jwtUtil.generateToken(email, existingUser.get().getRole().toString(), existingUser.get().getLanguage().toString());
+        accountForgotPasswordRequest.setToken(token);
+        accountForgotPasswordRequestRepository.save(accountForgotPasswordRequest);
+        return token;
+    }
+
+    public String confirmForgotPassword(String email, String code, String authorizationHeader) {
+        Optional<Account> existingUser = accountRepository.findByEmail(email);
+        if (existingUser.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7); // Remove "Bearer " prefix
+        }
+
+        if (token == null && jwtUtil.validateToken(token) == null) {
+            throw new RuntimeException("Not a valid token");
+        }
+
+        AccountForgotPasswordRequest accountForgotPasswordRequest = accountForgotPasswordRequestRepository
+                .findByEmailAndToken(email, token).orElseThrow();
+
+        if (!encoder.matches(code, accountForgotPasswordRequest.getConfirmationCode())) {
+            throw new RuntimeException("Confirmation code is incorrect");
+        }
+
+        String newToken = jwtUtil.generateToken(email, existingUser.get().getRole().toString(), existingUser.get().getLanguage().toString());
+        accountForgotPasswordRequest.setToken(newToken);
+
+        accountForgotPasswordRequest.setStatus(ForgotPasswordStatus.CONFIRMED);
+
+        accountForgotPasswordRequestRepository.save(accountForgotPasswordRequest);
+
+        return newToken;
+    }
+
+    public void changePassword(String newPassword, String authorizationHeader) {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        }
+
+        if (token == null && jwtUtil.validateToken(token) == null) {
+            throw new RuntimeException("Not a valid token!");
+        }
+
+        AccountForgotPasswordRequest accountForgotPasswordRequest = accountForgotPasswordRequestRepository.findByToken(token).orElseThrow();
+
+        if (!accountForgotPasswordRequest.getStatus().equals(ForgotPasswordStatus.CONFIRMED)) {
+            throw new RuntimeException("Request not confirmed!");
+        }
+
+        Account existingAccount = accountRepository.findByEmail(accountForgotPasswordRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        accountForgotPasswordRequest.setToken(null);
+        existingAccount.setPassword(encoder.encode(newPassword));
+        accountRepository.save(existingAccount);
+        accountForgotPasswordRequestRepository.save(accountForgotPasswordRequest);
+    }
+
+    private String getRandomNumber() {
         return String.valueOf(100000 + random.nextInt(900000));
     }
 
-    private Account getAccountByPrincipal(){
+    public Account getAccountByPrincipal() {
         String username = getPrincipalUserName();
         return accountRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));

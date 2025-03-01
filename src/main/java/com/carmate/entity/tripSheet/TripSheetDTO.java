@@ -17,6 +17,8 @@ public class TripSheetDTO {
 
     private String carName;
 
+    private String accountName;
+
     private LocalDate departureDate;
 
     private LocalTime departureTime;

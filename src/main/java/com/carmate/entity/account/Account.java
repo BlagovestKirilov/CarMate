@@ -28,6 +28,9 @@ public class Account implements UserDetails {
     private String email;
 
     @Column(nullable = false)
+    private String accountName;
+
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)

@@ -9,12 +9,12 @@ import com.carmate.enums.LanguageEnum;
 import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
 import com.carmate.repository.NotificationRepository;
+import com.carmate.security.util.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,31 +29,34 @@ public class NotificationService {
     private final CarRepository carRepository;
     private final NotificationRepository notificationRepository;
     private final AccountRepository accountRepository;
+    private final AuthService authService;
 
     @Autowired
     public NotificationService(
             CarRepository carRepository,
             NotificationRepository notificationRepository,
-            AccountRepository accountRepository
+            AccountRepository accountRepository,
+            AuthService authService
     ) {
         this.carRepository = carRepository;
         this.notificationRepository = notificationRepository;
         this.accountRepository = accountRepository;
+        this.authService = authService;
     }
 
-    public void generateNotifications(){
+    public void generateNotifications() {
         notificationRepository.deleteAll();
         List<Car> cars = carRepository.findAll();
         Date currentDate = new Date();
         List<Notification> resultNotification = new ArrayList<>();
-        for(Car car : cars){
-            if(car.getVignette().getIsActive()) {
+        for (Car car : cars) {
+            if (car.getVignette().getIsActive()) {
                 long vignetteExpirationDays = getDaysBetween(currentDate, car.getVignette().getEndDate());
 
-                if(vignetteExpirationDays < 300) {
+                if (vignetteExpirationDays < 300) {
                     Notification vignetteNotification = Notification.builder()
                             .notificationType(NotificationType.VIGNETTE)
-                            .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + vignetteExpirationDays +" дни.")
+                            .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + vignetteExpirationDays + " дни.")
                             .notificationTextEn("Vignette with plate number " + car.getPlateNumber() + " expires in " + vignetteExpirationDays + " days.")
                             .notificationDate(currentDate)
                             .account(car.getAccount())
@@ -75,13 +78,13 @@ public class NotificationService {
                 resultNotification.add(vignetteNotification);
             }
 
-            if(car.getInsurance().getIsActive()) {
+            if (car.getInsurance().getIsActive()) {
                 long insuranceExpirationDays = getDaysBetween(currentDate, car.getInsurance().getEndDate());
 
-                if(insuranceExpirationDays < 300) {
+                if (insuranceExpirationDays < 300) {
                     Notification insuranceNotification = Notification.builder()
                             .notificationType(NotificationType.INSURANCE)
-                            .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + insuranceExpirationDays +" дни.")
+                            .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + insuranceExpirationDays + " дни.")
                             .notificationTextEn("Insurance with plate number " + car.getPlateNumber() + " expires in " + insuranceExpirationDays + " days.")
                             .notificationDate(currentDate)
                             .account(car.getAccount())
@@ -103,14 +106,14 @@ public class NotificationService {
                 resultNotification.add(insuranceNotification);
             }
 
-            if(car.getTechnicalReview().getIsActive()) {
+            if (car.getTechnicalReview().getIsActive()) {
                 long technicalReviewExpirationDays = car.getTechnicalReview().getEndDate() != null ?
                         getDaysBetween(currentDate, car.getTechnicalReview().getEndDate()) : 365L;
 
-                if(technicalReviewExpirationDays < 300) {
+                if (technicalReviewExpirationDays < 300) {
                     Notification technicalReviewNotification = Notification.builder()
                             .notificationType(NotificationType.TECHNICAL_REVIEW)
-                            .notificationText("Техническият преглед на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + technicalReviewExpirationDays +" дни.")
+                            .notificationText("Техническият преглед на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + technicalReviewExpirationDays + " дни.")
                             .notificationTextEn("Technical review with plate number " + car.getPlateNumber() + " expires in " + technicalReviewExpirationDays + " days.")
                             .notificationDate(currentDate)
                             .account(car.getAccount())
@@ -132,11 +135,11 @@ public class NotificationService {
                 resultNotification.add(technicalReviewNotification);
             }
 
-            if(car.getObligation().getObligationsCount() > 0){
+            if (car.getObligation().getObligationsCount() > 0) {
                 Notification obligationNotification = Notification.builder()
                         .notificationType(NotificationType.OBLIGATION)
-                        .notificationText("Имате "+ car.getObligation().getObligationsCount() + " неплатени глоби с МПС с регистрационен номер " + car.getPlateNumber() + " !")
-                        .notificationTextEn("You have "+ car.getObligation().getObligationsCount() + " unpaid fines with vehicle with plate number " + car.getPlateNumber() + " !")
+                        .notificationText("Имате " + car.getObligation().getObligationsCount() + " неплатени глоби с МПС с регистрационен номер " + car.getPlateNumber() + " !")
+                        .notificationTextEn("You have " + car.getObligation().getObligationsCount() + " unpaid fines with vehicle with plate number " + car.getPlateNumber() + " !")
                         .notificationDate(currentDate)
                         .account(car.getAccount())
                         .carName(car.getName())
@@ -145,17 +148,14 @@ public class NotificationService {
                 resultNotification.add(obligationNotification);
             }
         }
-        if(!resultNotification.isEmpty()) {
+        if (!resultNotification.isEmpty()) {
             notificationRepository.saveAll(resultNotification);
         }
     }
 
 
-    public List<NotificationDTO> getAllNotificationsByDateAndAccount(){
-        String username = getPrincipalUserName();
-        Long userId = accountRepository.findByEmail(username)
-                .map(Account::getId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public List<NotificationDTO> getAllNotificationsByDateAndAccount() {
+        Long userId = authService.getAccountByPrincipal().getId();
 
         List<Notification> notifications = notificationRepository.findByDateAndAccount(new Date(), userId);
 
@@ -165,46 +165,40 @@ public class NotificationService {
                         notification.getNotificationText(),
                         notification.getNotificationTextEn(),
                         notification.getNotificationDate())
-                        )
+                )
                 .collect(Collectors.toList());
     }
 
     public void saveFCMToken(String fcmToken) {
-        Account account = getAccountByPrincipal();
+        Account account = authService.getAccountByPrincipal();
         account.setFcmToken(fcmToken);
         accountRepository.save(account);
     }
 
     public void sendNotification(String title, String body) {
-        Account account = getAccountByPrincipal();
-            String expoPushUrl = "https://exp.host/--/api/v2/push/send";
+        Account account = authService.getAccountByPrincipal();
+        String expoPushUrl = "https://exp.host/--/api/v2/push/send";
 
-            String requestBody = "{"
-                    + "\"to\": \"" + account.getFcmToken() + "\","
-                    + "\"title\": \"" + title + "\","
-                    + "\"body\": \"" + body + "\""
-                    + "}";
+        String requestBody = "{"
+                + "\"to\": \"" + account.getFcmToken() + "\","
+                + "\"title\": \"" + title + "\","
+                + "\"body\": \"" + body + "\""
+                + "}";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-Type", "application/json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
 
-            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(expoPushUrl, HttpMethod.POST, entity, String.class);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.exchange(expoPushUrl, HttpMethod.POST, entity, String.class);
 
-            System.out.println("Notification sent: " + response.getBody());
-    }
-
-    private Account getAccountByPrincipal(){
-        String username = getPrincipalUserName();
-        return accountRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("Notification sent: " + response.getBody());
     }
 
     public void changeAccountLanguage(String language) {
-        Account account = getAccountByPrincipal();
-        if(language.equals("en")){
+        Account account = authService.getAccountByPrincipal();
+        if (language.equals("en")) {
             account.setLanguage(LanguageEnum.ENGLISH);
         } else {
             account.setLanguage(LanguageEnum.BULGARIAN);
@@ -212,15 +206,11 @@ public class NotificationService {
         accountRepository.save(account);
     }
 
-    public List<Notification> getAllNotificationsByAccount(){
-        return notificationRepository.findAllByAccount(accountRepository.findByEmail(getPrincipalUserName()).get());
+    public List<Notification> getAllNotificationsByAccount() {
+        return notificationRepository.findAllByAccount(authService.getAccountByPrincipal());
     }
 
-    private long getDaysBetween(Date dateFrom, Date dateTo){
+    private long getDaysBetween(Date dateFrom, Date dateTo) {
         return TimeUnit.MILLISECONDS.toDays(dateTo.getTime() - dateFrom.getTime());
-    }
-
-    private String getPrincipalUserName() {
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 }

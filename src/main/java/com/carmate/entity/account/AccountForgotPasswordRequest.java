@@ -1,7 +1,6 @@
 package com.carmate.entity.account;
 
-import com.carmate.enums.AccountRoleEnum;
-import com.carmate.enums.RegistrationStatus;
+import com.carmate.enums.ForgotPasswordStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +12,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountRegistrationRequest {
+public class AccountForgotPasswordRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,20 +20,13 @@ public class AccountRegistrationRequest {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
-    private String accountName;
-
-    @Column(nullable = false)
-    private String password;
+    private String token;
 
     @Column(nullable = false)
     private String confirmationCode;
 
-    @Enumerated(EnumType.STRING)
-    private AccountRoleEnum role;
-
     private Date date = new Date();
 
     @Enumerated(EnumType.STRING)
-    private RegistrationStatus status = RegistrationStatus.PENDING;
+    private ForgotPasswordStatus status = ForgotPasswordStatus.PENDING;
 }

@@ -1,68 +1,38 @@
 package com.carmate.scheduler;
 
-import com.carmate.entity.car.Car;
-import com.carmate.repository.CarRepository;
-import com.carmate.service.CarService;
-import jakarta.transaction.Transactional;
+import com.carmate.service.external.InsuranceService;
+import com.carmate.service.external.ObligationService;
+import com.carmate.service.external.TechnicalReviewService;
+import com.carmate.service.external.VignetteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-
 @Service
-public class Scheduler  {
-    @Autowired
-    private CarRepository carRepository;
+public class Scheduler {
+
+    private final VignetteService vignetteService;
+    private final InsuranceService insuranceService;
+    private final TechnicalReviewService technicalReviewService;
+    private final ObligationService obligationService;
 
     @Autowired
-    private CarService carService;
+    public Scheduler(VignetteService vignetteService,
+                     InsuranceService insuranceService,
+                     TechnicalReviewService technicalReviewService,
+                     ObligationService obligationService) {
+        this.vignetteService = vignetteService;
+        this.insuranceService = insuranceService;
+        this.technicalReviewService = technicalReviewService;
+        this.obligationService = obligationService;
+    }
 
     @Scheduled(cron = "0 0 5 * * *")
     public void schedulerChecks(){
-        vignetteScheduler();
-        insuranceScheduler();
-        technicalReviewScheduler();
-        obligationScheduler();
+        vignetteService.vignetteScheduler();
+        insuranceService.insuranceScheduler();
+        technicalReviewService.technicalReviewScheduler();
+        obligationService.obligationScheduler();
     }
 
-    @Transactional
-    public void vignetteScheduler(){
-        Date currentDate = new Date();
-        List<Car> carsForVignetteCheck = carRepository.findAllByVignette_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
-        for(Car car : carsForVignetteCheck){
-            carService.vignetteCheck(car);
-            carRepository.save(car);
-        }
-    }
-
-    @Transactional
-    public void insuranceScheduler(){
-        Date currentDate = new Date();
-        List<Car> carsForInsuranceCheck = carRepository.findAllByInsurance_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
-        for(Car car : carsForInsuranceCheck){
-            carService.insuranceCheck(car);
-            carRepository.save(car);
-        }
-    }
-
-    @Transactional
-    public void technicalReviewScheduler(){
-        Date currentDate = new Date();
-        List<Car> carsForTechnicalReviewCheck = carRepository.findAllByTechnicalReview_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
-        for(Car car : carsForTechnicalReviewCheck){
-            carService.technicalReviewCheck(car);
-            carRepository.save(car);
-        }
-    }
-
-    @Transactional
-    public void obligationScheduler(){
-        List<Car> cars = carRepository.findAll();
-        for(Car car : cars){
-            carService.obligationCheck(car);
-            carRepository.save(car);
-        }
-    }
 }

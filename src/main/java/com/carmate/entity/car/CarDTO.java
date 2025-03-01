@@ -12,6 +12,9 @@ public class CarDTO {
     private Long id;
 
     private String name;
+    //account name vmesto status olichne lowo
+
+    private String accountName;
 
     private String plateNumber;
 
