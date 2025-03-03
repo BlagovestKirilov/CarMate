@@ -37,8 +37,6 @@ public class Car {
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripSheet> tripSheets;
 
-    private String deviceID;
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "vignette_id", referencedColumnName = "id")
     private Vignette vignette;

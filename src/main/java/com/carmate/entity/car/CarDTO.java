@@ -1,6 +1,7 @@
 package com.carmate.entity.car;
 
 import lombok.*;
+
 import java.util.Date;
 
 @Getter
@@ -12,15 +13,12 @@ public class CarDTO {
     private Long id;
 
     private String name;
-    //account name vmesto status olichne lowo
 
     private String accountName;
 
     private String plateNumber;
 
     private String egn;
-
-    private String deviceID;
 
     private Boolean isActiveVignette;
 

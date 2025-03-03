@@ -21,7 +21,7 @@ public class Vignette {
     @OneToOne(mappedBy = "vignette")
     private Car car;
 
-    private Boolean isActive;
+    private Boolean isActive = Boolean.FALSE;
 
     private Date startDate;
 

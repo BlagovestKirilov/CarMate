@@ -2,7 +2,6 @@ package com.carmate.controller;
 
 import com.carmate.service.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +15,7 @@ public class PdfController {
     @Autowired
     private PdfService pdfService;
 
-    @PostMapping(value = "/generate-pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @PostMapping(value = "/generate-pdf")
     public ResponseEntity<?> generateTripSheetPdf(@RequestBody List<Long> tripSheetIds) {
         try {
             pdfService.generateTripSheetPdf(tripSheetIds);

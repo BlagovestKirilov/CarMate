@@ -10,6 +10,9 @@ import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
 import com.carmate.repository.NotificationRepository;
 import com.carmate.security.util.AuthService;
+import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +34,8 @@ public class NotificationService {
     private final AccountRepository accountRepository;
     private final AuthService authService;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);
+
     @Autowired
     public NotificationService(
             CarRepository carRepository,
@@ -44,8 +49,8 @@ public class NotificationService {
         this.authService = authService;
     }
 
+    @Transactional
     public void generateNotifications() {
-        notificationRepository.deleteAll();
         List<Car> cars = carRepository.findAll();
         Date currentDate = new Date();
         List<Notification> resultNotification = new ArrayList<>();
@@ -57,7 +62,7 @@ public class NotificationService {
                     Notification vignetteNotification = Notification.builder()
                             .notificationType(NotificationType.VIGNETTE)
                             .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + vignetteExpirationDays + " дни.")
-                            .notificationTextEn("Vignette with plate number " + car.getPlateNumber() + " expires in " + vignetteExpirationDays + " days.")
+                            .notificationTextEn("Vehicle's vignette with plate number " + car.getPlateNumber() + " expires in " + vignetteExpirationDays + " days.")
                             .notificationDate(currentDate)
                             .account(car.getAccount())
                             .carName(car.getName())
@@ -69,7 +74,7 @@ public class NotificationService {
                 Notification vignetteNotification = Notification.builder()
                         .notificationType(NotificationType.VIGNETTE)
                         .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
-                        .notificationTextEn("Vignette with plate number " + car.getPlateNumber() + " is expired.")
+                        .notificationTextEn("Vehicle's Vignette with plate number " + car.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
                         .account(car.getAccount())
                         .carName(car.getName())
@@ -85,7 +90,7 @@ public class NotificationService {
                     Notification insuranceNotification = Notification.builder()
                             .notificationType(NotificationType.INSURANCE)
                             .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + insuranceExpirationDays + " дни.")
-                            .notificationTextEn("Insurance with plate number " + car.getPlateNumber() + " expires in " + insuranceExpirationDays + " days.")
+                            .notificationTextEn("Vehicle's insurance with plate number " + car.getPlateNumber() + " expires in " + insuranceExpirationDays + " days.")
                             .notificationDate(currentDate)
                             .account(car.getAccount())
                             .carName(car.getName())
@@ -97,7 +102,7 @@ public class NotificationService {
                 Notification insuranceNotification = Notification.builder()
                         .notificationType(NotificationType.INSURANCE)
                         .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
-                        .notificationTextEn("Insurance with plate number " + car.getPlateNumber() + " is expired.")
+                        .notificationTextEn("Vehicle's insurance with plate number " + car.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
                         .account(car.getAccount())
                         .carName(car.getName())
@@ -114,7 +119,7 @@ public class NotificationService {
                     Notification technicalReviewNotification = Notification.builder()
                             .notificationType(NotificationType.TECHNICAL_REVIEW)
                             .notificationText("Техническият преглед на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + technicalReviewExpirationDays + " дни.")
-                            .notificationTextEn("Technical review with plate number " + car.getPlateNumber() + " expires in " + technicalReviewExpirationDays + " days.")
+                            .notificationTextEn("Vehicle's technical review with plate number " + car.getPlateNumber() + " expires in " + technicalReviewExpirationDays + " days.")
                             .notificationDate(currentDate)
                             .account(car.getAccount())
                             .carName(car.getName())
@@ -126,9 +131,8 @@ public class NotificationService {
                 Notification technicalReviewNotification = Notification.builder()
                         .notificationType(NotificationType.TECHNICAL_REVIEW)
                         .notificationText("Техническият преглед на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
-                        .notificationTextEn("Technical review with plate number " + car.getPlateNumber() + " is expired.")
+                        .notificationTextEn("Vehicle's technical review with plate number " + car.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
-                        .deviceID(car.getDeviceID())
                         .carName(car.getName())
                         .build();
 
@@ -169,18 +173,32 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    public void saveFCMToken(String fcmToken) {
+    public void saveNotificationToken(String notificationToken) {
         Account account = authService.getAccountByPrincipal();
-        account.setFcmToken(fcmToken);
+        account.setNotificationToken(notificationToken);
         accountRepository.save(account);
     }
 
-    public void sendNotification(String title, String body) {
-        Account account = authService.getAccountByPrincipal();
+    public void sendCurrentDateNotification() {
+        List<Notification> currentDayNotifications = notificationRepository.findAllCurrentDayNotifications();
+        for (Notification notification : currentDayNotifications) {
+            try {
+                sendNotification("CAR MATE",
+                        notification.getAccount().getLanguage().equals(LanguageEnum.BULGARIAN) ?
+                                notification.getNotificationText() : notification.getNotificationTextEn(),
+                        notification.getAccount().getNotificationToken());
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+    }
+
+
+    public void sendNotification(String title, String body, String notificationToken) {
         String expoPushUrl = "https://exp.host/--/api/v2/push/send";
 
         String requestBody = "{"
-                + "\"to\": \"" + account.getFcmToken() + "\","
+                + "\"to\": \"" + notificationToken + "\","
                 + "\"title\": \"" + title + "\","
                 + "\"body\": \"" + body + "\""
                 + "}";
@@ -204,10 +222,6 @@ public class NotificationService {
             account.setLanguage(LanguageEnum.BULGARIAN);
         }
         accountRepository.save(account);
-    }
-
-    public List<Notification> getAllNotificationsByAccount() {
-        return notificationRepository.findAllByAccount(authService.getAccountByPrincipal());
     }
 
     private long getDaysBetween(Date dateFrom, Date dateTo) {

@@ -25,8 +25,6 @@ public class Notification {
 
     private String notificationTextEn;
 
-    private String deviceID;
-
     @ManyToOne
     @JoinColumn(name = "account_id")
     private Account account;

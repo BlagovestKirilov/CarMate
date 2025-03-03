@@ -14,7 +14,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -35,9 +34,9 @@ public class VignetteService {
 
     @Transactional
     public void vignetteCheck(Car car) {
-        VignetteResponse vignetteResponse = vignetteCheckExternal(car.getPlateNumber());
-
         Vignette vignette = car.getVignette() != null ? car.getVignette() : new Vignette();
+
+        VignetteResponse vignetteResponse = vignetteCheckExternal(car.getPlateNumber());
 
         if (vignetteResponse.getVignette() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
@@ -52,7 +51,6 @@ public class VignetteService {
             vignette.setIsActive(Boolean.FALSE);
         }
 
-        vignette.setCar(car);
         car.setVignette(vignette);
     }
 
@@ -72,11 +70,10 @@ public class VignetteService {
 
     @Transactional
     public void vignetteScheduler() {
-        Date currentDate = new Date();
-        List<Car> carsForVignetteCheck = carRepository.findAllByVignette_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
-        for (Car car : carsForVignetteCheck) {
+        List<Car> expiringVignettesCars = carRepository.findCarsWithExpiringVignettes();
+        expiringVignettesCars.forEach(car -> {
             vignetteCheck(car);
             carRepository.save(car);
-        }
+        });
     }
 }

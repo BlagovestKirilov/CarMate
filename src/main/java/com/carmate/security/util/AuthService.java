@@ -117,7 +117,7 @@ public class AuthService {
     public void logout() {
         Account account = getAccountByPrincipal();
         account.setToken(null);
-        account.setFcmToken(null);
+        account.setNotificationToken(null);
         accountRepository.save(account);
     }
 

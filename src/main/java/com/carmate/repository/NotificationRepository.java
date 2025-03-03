@@ -1,6 +1,5 @@
 package com.carmate.repository;
 
-import com.carmate.entity.account.Account;
 import com.carmate.entity.notification.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +14,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query(value = "SELECT * FROM notification e WHERE DATE(e.notification_date) = :date and e.account_id = :accountID", nativeQuery = true)
     List<Notification> findByDateAndAccount(@Param("date") Date date, @Param("accountID") Long accountID);
 
-    List<Notification> findAllByAccount(Account account);
-
+    @Query("SELECT n FROM Notification n WHERE DATE(n.notificationDate) = CURRENT_DATE")
+    List<Notification> findAllCurrentDayNotifications();
 }

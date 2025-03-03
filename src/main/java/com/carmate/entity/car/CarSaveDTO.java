@@ -10,8 +10,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CarSaveDTO {
+
     private String name;
+
     private String plateNumber;
+
     private String egn;
-    private String deviceID;
 }

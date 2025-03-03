@@ -6,6 +6,7 @@ import com.carmate.enums.LanguageEnum;
 import com.carmate.repository.TripSheetRepository;
 import com.carmate.security.util.AuthService;
 import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -35,50 +37,67 @@ public class PdfService {
         this.dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     }
 
-    public void generateTripSheetPdf(List<Long> tripSheetsIDs) throws DocumentException {
+    public void generateTripSheetPdf(List<Long> tripSheetsIDs) throws DocumentException, IOException {
         Account account = authService.getAccountByPrincipal();
         LanguageEnum language = account.getLanguage();
 
+        // Define text based on language
         String titleText = language.equals(LanguageEnum.BULGARIAN) ? "Пътни листове" : "Trip Sheets";
         String[] headers = language.equals(LanguageEnum.BULGARIAN) ?
-                new String[]{"Имейл", "Кола", "Дата на тръгване", "Час на тръгване", "Място на тръгване",
+                new String[]{"Имейл", "Рег. номер", "Дата на тръгване", "Час на тръгване", "Място на тръгване",
                         "Причина за пътуване", "Дата на пристигане", "Час на пристигане", "Място на пристигане",
                         "Начален километраж", "Краен километраж"} :
-                new String[]{"User Email", "Car Name", "Departure Date", "Departure Time", "Departure Location",
+                new String[]{"User Email", "Pl. number", "Departure Date", "Departure Time", "Departure Location",
                         "Trip Reason", "Arrival Date", "Arrival Time", "Arrival Location", "Start Odometer", "End Odometer"};
         String generatedOnText = language.equals(LanguageEnum.BULGARIAN) ? "Генерирано на: " : "Generated on: ";
 
         List<TripSheet> tripSheets = tripSheetRepository.findAllById(tripSheetsIDs);
 
-        Document document = new Document();
+        Document document = new Document(PageSize.A4.rotate());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfWriter.getInstance(document, outputStream);
 
         document.open();
 
-        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.BLACK);
+        // Load a font that supports Cyrillic characters
+        BaseFont baseFont = BaseFont.createFont("font/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        Font titleFont = new Font(baseFont, 18, Font.BOLD);
+        Font headerFont = new Font(baseFont, 12, Font.BOLD);
+        Font cellFont = new Font(baseFont, 10, Font.NORMAL);
+        Font dateFont = new Font(baseFont, 10, Font.NORMAL);
+
+        // Add title
         Paragraph title = new Paragraph(titleText, titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         title.setSpacingAfter(20f);
         document.add(title);
 
+        // Create table
         PdfPTable table = new PdfPTable(11);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
         table.setSpacingAfter(10f);
 
-        float[] columnWidths = {2f, 2f, 3f, 2f, 2f, 2f, 3f, 2f, 2f, 2f, 2f};
+        float[] columnWidths = {3f, 2f, 2f, 2f, 2f, 2f, 2.3f, 2.3f, 2.3f, 2.5f, 2.5f};
         table.setWidths(columnWidths);
 
-        addTableHeader(table, headers);
+        // Add table headers
+        for (String header : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
+            cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(cell);
+        }
 
+        // Add table rows
         for (int i = 0; i < tripSheets.size(); i++) {
-            addRow(table, tripSheets.get(i), i % 2 == 0);
+            TripSheet tripSheet = tripSheets.get(i);
+            addRow(table, tripSheet, i % 2 == 0, cellFont);
         }
 
         document.add(table);
 
-        Font dateFont = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
+        // Add generated date
         Paragraph generatedOn = new Paragraph(generatedOnText + LocalDate.now().format(dateTimeFormatter), dateFont);
         generatedOn.setAlignment(Element.ALIGN_RIGHT);
         generatedOn.setSpacingBefore(10f);
@@ -86,45 +105,33 @@ public class PdfService {
 
         document.close();
 
-        if (language.equals(LanguageEnum.BULGARIAN)) {
-            emailService.sendEmailWithPdfAttachment(account.getEmail(), "Пътни листи", "Пътни листи", outputStream.toByteArray(), "trip_sheets_" + LocalDate.now().format(dateTimeFormatter) + ".pdf");
-        } else {
-            emailService.sendEmailWithPdfAttachment(account.getEmail(), "Trip sheets", "Trip sheets", outputStream.toByteArray(), "trip_sheets_" + LocalDate.now().format(dateTimeFormatter) + ".pdf");
+        // Send email with PDF attachment
+        String emailSubject = language.equals(LanguageEnum.BULGARIAN) ? "Пътни листи" : "Trip sheets";
+        String emailBody = language.equals(LanguageEnum.BULGARIAN) ? "Пътни листи" : "Trip sheets";
+        String fileName = "trip_sheets_" + LocalDate.now().format(dateTimeFormatter) + ".pdf";
 
-        }
+        emailService.sendEmailWithPdfAttachment(account.getEmail(), emailSubject, emailBody, outputStream.toByteArray(), fileName);
     }
 
-    private void addTableHeader(PdfPTable table, String[] headers) {
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell();
-            cell.setPhrase(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE)));
-            cell.setBackgroundColor(new BaseColor(59, 89, 182));
-            cell.setPadding(5);
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            table.addCell(cell);
-        }
-    }
-
-    private void addRow(PdfPTable table, TripSheet tripSheet, boolean isEvenRow) {
+    private void addRow(PdfPTable table, TripSheet tripSheet, boolean isEvenRow, Font cellFont) {
         BaseColor rowColor = isEvenRow ? BaseColor.WHITE : new BaseColor(240, 240, 240);
 
-        addCell(table, tripSheet.getCar().getAccount().getEmail(), rowColor);
-        addCell(table, tripSheet.getCar().getName(), rowColor);
-        addCell(table, tripSheet.getDepartureDate().format(dateTimeFormatter), rowColor);
-        addCell(table, tripSheet.getDepartureTime().toString(), rowColor);
-        addCell(table, tripSheet.getDepartureLocation(), rowColor);
-        addCell(table, tripSheet.getTripReason(), rowColor);
-        addCell(table, tripSheet.getArrivalDate().format(dateTimeFormatter), rowColor);
-        addCell(table, tripSheet.getArrivalTime().toString(), rowColor);
-        addCell(table, tripSheet.getArrivalLocation(), rowColor);
-        addCell(table, tripSheet.getStartOdometer().toString(), rowColor);
-        addCell(table, tripSheet.getEndOdometer().toString(), rowColor);
+        addCell(table, tripSheet.getCar().getAccount().getEmail(), rowColor, cellFont);
+        addCell(table, tripSheet.getCar().getPlateNumber(), rowColor, cellFont);
+        addCell(table, tripSheet.getDepartureDate().format(dateTimeFormatter), rowColor, cellFont);
+        addCell(table, tripSheet.getDepartureTime().toString(), rowColor, cellFont);
+        addCell(table, tripSheet.getDepartureLocation(), rowColor, cellFont);
+        addCell(table, tripSheet.getTripReason(), rowColor, cellFont);
+        addCell(table, tripSheet.getArrivalDate().format(dateTimeFormatter), rowColor, cellFont);
+        addCell(table, tripSheet.getArrivalTime().toString(), rowColor, cellFont);
+        addCell(table, tripSheet.getArrivalLocation(), rowColor, cellFont);
+        addCell(table, String.valueOf(tripSheet.getStartOdometer()), rowColor, cellFont);
+        addCell(table, String.valueOf(tripSheet.getEndOdometer()), rowColor, cellFont);
     }
 
-    private void addCell(PdfPTable table, String content, BaseColor backgroundColor) {
-        PdfPCell cell = new PdfPCell(new Phrase(content, FontFactory.getFont(FontFactory.HELVETICA, 10)));
+    private void addCell(PdfPTable table, String text, BaseColor backgroundColor, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setBackgroundColor(backgroundColor);
-        cell.setPadding(5);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
     }

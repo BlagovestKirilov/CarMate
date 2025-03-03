@@ -1,5 +1,6 @@
 package com.carmate.scheduler;
 
+import com.carmate.service.NotificationService;
 import com.carmate.service.external.InsuranceService;
 import com.carmate.service.external.ObligationService;
 import com.carmate.service.external.TechnicalReviewService;
@@ -15,24 +16,32 @@ public class Scheduler {
     private final InsuranceService insuranceService;
     private final TechnicalReviewService technicalReviewService;
     private final ObligationService obligationService;
+    private final NotificationService notificationService;
 
     @Autowired
     public Scheduler(VignetteService vignetteService,
                      InsuranceService insuranceService,
                      TechnicalReviewService technicalReviewService,
-                     ObligationService obligationService) {
+                     ObligationService obligationService,
+                     NotificationService notificationService) {
         this.vignetteService = vignetteService;
         this.insuranceService = insuranceService;
         this.technicalReviewService = technicalReviewService;
         this.obligationService = obligationService;
+        this.notificationService = notificationService;
     }
 
-    @Scheduled(cron = "0 0 5 * * *")
-    public void schedulerChecks(){
+    @Scheduled(cron = "0 0 1 * * *")
+    private void externalServicesChecks() {
         vignetteService.vignetteScheduler();
         insuranceService.insuranceScheduler();
         technicalReviewService.technicalReviewScheduler();
         obligationService.obligationScheduler();
+        notificationService.generateNotifications();
     }
 
+    @Scheduled(cron = "0 0 10 * * *")
+    private void sendNotifications() {
+        notificationService.sendCurrentDateNotification();
+    }
 }

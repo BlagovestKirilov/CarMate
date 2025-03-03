@@ -1,6 +1,5 @@
 package com.carmate.controller;
 
-import com.carmate.entity.notification.Notification;
 import com.carmate.entity.notification.NotificationDTO;
 import com.carmate.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,31 +24,11 @@ public class NotificationController {
         return ResponseEntity.ok(resultNotifications);
     }
 
-    @GetMapping("/get-all-notification")
-    public ResponseEntity<List<Notification>> getOldNotifications() {
-        List<Notification> resultNotifications = notificationService.getAllNotificationsByAccount();
-        return ResponseEntity.ok(resultNotifications);
-    }
-
-    @GetMapping("/generate-notification")
-    public void generateNotifications() {
-        notificationService.generateNotifications();
-    }
-
     @PostMapping("/save-push-token")
     public String saveFCMToken(@RequestBody Map<String, String> requestBody) {
         String fcmToken = requestBody.get("token");
-        notificationService.saveFCMToken(fcmToken);
+        notificationService.saveNotificationToken(fcmToken);
         return "FCM token saved successfully.";
-    }
-
-    @GetMapping("/send")
-    public String sendTestNotification() {
-        String title = "Test Notification";
-        String body = "This is a test notification from Spring Boot!";
-
-        notificationService.sendNotification(title, body);
-        return "Notification sent!";
     }
 
     @PostMapping("/change-language")

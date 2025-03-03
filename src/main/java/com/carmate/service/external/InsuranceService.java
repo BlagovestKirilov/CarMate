@@ -21,7 +21,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -120,11 +119,10 @@ public class InsuranceService {
 
     @Transactional
     public void insuranceScheduler() {
-        Date currentDate = new Date();
-        List<Car> carsForInsuranceCheck = carRepository.findAllByInsurance_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
-        for (Car car : carsForInsuranceCheck) {
+        List<Car> expiringInsuranceCars = carRepository.findCarsWithExpiringInsurance();
+        expiringInsuranceCars.forEach(car -> {
             insuranceCheck(car);
             carRepository.save(car);
-        }
+        });
     }
 }

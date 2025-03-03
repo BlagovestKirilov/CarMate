@@ -91,17 +91,15 @@ public class TechnicalReviewService {
             return null;
         }
 
-
         return response.getBody();
     }
 
     @Transactional
     public void technicalReviewScheduler() {
-        Date currentDate = new Date();
-        List<Car> carsForTechnicalReviewCheck = carRepository.findAllByTechnicalReview_EndDateIsBeforeOrVignette_IsActiveIsFalse(currentDate);
-        for (Car car : carsForTechnicalReviewCheck) {
+        List<Car> expiringTechnicalReviewCard = carRepository.findCarsWithExpiringTechnicalReview();
+        expiringTechnicalReviewCard.forEach(car -> {
             technicalReviewCheck(car);
             carRepository.save(car);
-        }
+        });
     }
 }

@@ -63,7 +63,6 @@ public class CarService {
             car.setName(carSaveDTO.getName());
             car.setPlateNumber(carSaveDTO.getPlateNumber());
             car.setEgn(carSaveDTO.getEgn());
-            car.setDeviceID(carSaveDTO.getDeviceID());
             externalServicesCheck(car);
             carRepository.save(car);
             LOGGER.info("Saved car: {} to account: {}", carSaveDTO.getPlateNumber(), account.getEmail());
@@ -72,7 +71,7 @@ public class CarService {
 
     public List<CarDTO> getCars() {
         Account account = authService.getAccountByPrincipal();
-        LOGGER.info("Get car: " + account.getEmail());
+        LOGGER.info("Get car: {}", account.getEmail());
 
         List<Car> cars = account.getRole().equals(AccountRoleEnum.USER) ?
                 account.getCars() : carRepository.findAll();
@@ -84,7 +83,6 @@ public class CarService {
                         .accountName(car.getAccount().getAccountName())
                         .plateNumber(car.getPlateNumber())
                         .egn(car.getEgn())
-                        .deviceID(car.getDeviceID())
                         .isActiveVignette(car.getVignette().getIsActive())
                         .startVignetteActiveDate(car.getVignette().getStartDate())
                         .endVignetteActiveDate(car.getVignette().getEndDate())

@@ -41,7 +41,7 @@ public class Account implements UserDetails {
 
     private String token;
 
-    private String fcmToken;
+    private String notificationToken;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
     private List<Car> cars;
