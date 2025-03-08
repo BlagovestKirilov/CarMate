@@ -1,4 +1,4 @@
-package com.carmate.security.config;
+package com.carmate.config.security;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 

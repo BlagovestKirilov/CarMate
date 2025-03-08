@@ -4,12 +4,13 @@ import com.carmate.entity.account.Account;
 import com.carmate.entity.tripSheet.TripSheet;
 import com.carmate.enums.LanguageEnum;
 import com.carmate.repository.TripSheetRepository;
-import com.carmate.security.util.AuthService;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,8 @@ public class PdfService {
     private final EmailService emailService;
     private final DateTimeFormatter dateTimeFormatter;
     private final AuthService authService;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PdfService.class);
 
     @Autowired
     public PdfService(TripSheetRepository tripSheetRepository,
@@ -111,6 +114,7 @@ public class PdfService {
         String fileName = "trip_sheets_" + LocalDate.now().format(dateTimeFormatter) + ".pdf";
 
         emailService.sendEmailWithPdfAttachment(account.getEmail(), emailSubject, emailBody, outputStream.toByteArray(), fileName);
+        LOGGER.info("Email sent to: {}", account.getEmail());
     }
 
     private void addRow(PdfPTable table, TripSheet tripSheet, boolean isEvenRow, Font cellFont) {

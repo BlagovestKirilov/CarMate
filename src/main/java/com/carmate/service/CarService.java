@@ -5,12 +5,15 @@ import com.carmate.entity.car.Car;
 import com.carmate.entity.car.CarDTO;
 import com.carmate.entity.car.CarSaveDTO;
 import com.carmate.entity.car.OilChangeDTO;
+import com.carmate.entity.expense.Expense;
+import com.carmate.entity.expense.ExpenseDTO;
 import com.carmate.entity.tripSheet.TripSheet;
 import com.carmate.entity.tripSheet.TripSheetDTO;
 import com.carmate.enums.AccountRoleEnum;
+import com.carmate.enums.ExpenseType;
 import com.carmate.repository.CarRepository;
+import com.carmate.repository.ExpenseRepository;
 import com.carmate.repository.TripSheetRepository;
-import com.carmate.security.util.AuthService;
 import com.carmate.service.external.InsuranceService;
 import com.carmate.service.external.ObligationService;
 import com.carmate.service.external.TechnicalReviewService;
@@ -34,6 +37,8 @@ public class CarService {
     private final TechnicalReviewService technicalReviewService;
     private final TripSheetRepository tripSheetRepository;
     private final AuthService authService;
+    private final ExpenseRepository expenseRepository;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CarService.class);
 
     @Autowired
@@ -44,8 +49,8 @@ public class CarService {
             ObligationService obligationService,
             TechnicalReviewService technicalReviewService,
             TripSheetRepository tripSheetRepository,
-            AuthService authService
-    ) {
+            AuthService authService,
+            ExpenseRepository expenseRepository) {
         this.carRepository = carRepository;
         this.vignetteService = vignetteService;
         this.insuranceService = insuranceService;
@@ -53,6 +58,7 @@ public class CarService {
         this.technicalReviewService = technicalReviewService;
         this.tripSheetRepository = tripSheetRepository;
         this.authService = authService;
+        this.expenseRepository = expenseRepository;
     }
 
     public void saveCar(CarSaveDTO carSaveDTO) {
@@ -141,6 +147,7 @@ public class CarService {
             car.setOilChangeOdometer(oilChangeDTO.getOdometerValue());
             car.setOilChangeDate(new Date());
             carRepository.save(car);
+            LOGGER.info("Save oil change to car with ID: {}", oilChangeDTO.getCarId());
         }
     }
 
@@ -151,11 +158,13 @@ public class CarService {
             List<TripSheet> tripSheets = tripSheetRepository.findAllByCarOrderByArrivalDateDescArrivalTimeDesc(car);
             tripSheetsDTOs = mapToTripSheetDTOs(tripSheets);
         }
+        LOGGER.info("Get trip sheets for car with ID: {}", carID);
         return tripSheetsDTOs;
     }
 
     public List<TripSheetDTO> getTripSheetsAdmin() {
         List<TripSheet> tripSheets = tripSheetRepository.findAll();
+        LOGGER.info("Admin get all trip sheets");
         return mapToTripSheetDTOs(tripSheets);
     }
 
@@ -183,5 +192,46 @@ public class CarService {
     public void deleteTripSheet(Long tripSheetID) {
         tripSheetRepository.deleteById(tripSheetID);
         LOGGER.info("Delete trip sheet : {}", tripSheetID);
+    }
+
+    public void saveExpense(ExpenseDTO expenseDTO) {
+        Car car = carRepository.findById(expenseDTO.getCarID()).orElse(null);
+        if (car != null) {
+            Expense expense = Expense.builder()
+                    .car(car)
+                    .type(ExpenseType.valueOf(expenseDTO.getType()))
+                    .description(expenseDTO.getDescription())
+                    .amount(expenseDTO.getAmount())
+                    .date(new Date())
+                    .build();
+            expenseRepository.save(expense);
+            LOGGER.info("Saved expense for car with id : {}", expenseDTO.getCarID());
+        }
+    }
+
+    public List<ExpenseDTO> getExpenses(Long carID) {
+        Car car = carRepository.findById(carID).orElse(null);
+        List<ExpenseDTO> expenses = new ArrayList<>();
+        if (car != null) {
+            expenses = expenseRepository.findAllByCar(car)
+                    .stream()
+                    .map(expense -> ExpenseDTO.builder()
+                            .id(expense.getId())
+                            .carID(car.getId())
+                            .amount(expense.getAmount())
+                            .type(expense.getType().toString())
+                            .description(expense.getDescription())
+                            .date(expense.getDate())
+                            .build())
+                    .toList();
+
+        }
+        LOGGER.info("Get expense for car with id : {}", carID);
+        return expenses;
+    }
+
+    public void deleteExpense(Long expenseID) {
+        expenseRepository.deleteById(expenseID);
+        LOGGER.info("Deleted expense with id : {}", expenseID);
     }
 }

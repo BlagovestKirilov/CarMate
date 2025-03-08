@@ -5,6 +5,8 @@ import com.carmate.entity.technicalReview.TechnicalReview;
 import com.carmate.entity.technicalReview.external.TechnicalReviewResponse;
 import com.carmate.repository.CarRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,10 +27,16 @@ import java.util.regex.Pattern;
 @Service
 public class TechnicalReviewService {
 
+    private final CarRepository carRepository;
+
     @Autowired
-    private CarRepository carRepository;
+    public TechnicalReviewService(CarRepository carRepository) {
+        this.carRepository = carRepository;
+    }
 
     private static final String TECHNICAL_REVIEW_ENDPOINT = "https://myve.bg/api/get/gtp";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalReviewService.class);
 
     @Transactional
     public void technicalReviewCheck(Car car) {
@@ -62,6 +70,8 @@ public class TechnicalReviewService {
 
         technicalReview.setCar(car);
         car.setTechnicalReview(technicalReview);
+
+        LOGGER.info("Technical review check for car: {}", car.getPlateNumber());
     }
 
     public TechnicalReviewResponse technicalReviewCheckExternal(String plateNumber) {

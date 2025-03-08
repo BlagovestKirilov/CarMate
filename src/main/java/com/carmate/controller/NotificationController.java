@@ -15,8 +15,12 @@ import java.util.Map;
 @RestController
 public class NotificationController {
 
+    private final NotificationService notificationService;
+
     @Autowired
-    private NotificationService notificationService;
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     @GetMapping("/get-notification")
     public ResponseEntity<List<NotificationDTO>> getNotifications() {

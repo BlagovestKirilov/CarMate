@@ -9,7 +9,6 @@ import com.carmate.enums.LanguageEnum;
 import com.carmate.repository.AccountRepository;
 import com.carmate.repository.CarRepository;
 import com.carmate.repository.NotificationRepository;
-import com.carmate.security.util.AuthService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -209,9 +207,7 @@ public class NotificationService {
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(expoPushUrl, HttpMethod.POST, entity, String.class);
-
-        System.out.println("Notification sent: " + response.getBody());
+        restTemplate.exchange(expoPushUrl, HttpMethod.POST, entity, String.class);
     }
 
     public void changeAccountLanguage(String language) {

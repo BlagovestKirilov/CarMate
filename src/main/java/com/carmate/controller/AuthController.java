@@ -1,6 +1,7 @@
-package com.carmate.security.controller;
+package com.carmate.controller;
 
-import com.carmate.security.util.AuthService;
+import com.carmate.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,8 +10,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
     private final AuthService authService;
 
+    @Autowired
     public AuthController(AuthService authService) {
         this.authService = authService;
     }

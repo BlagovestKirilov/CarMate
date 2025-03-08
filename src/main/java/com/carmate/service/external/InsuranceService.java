@@ -39,7 +39,8 @@ public class InsuranceService {
     }
 
     private static final String GUARANTEE_FUND_ENDPOINT = "https://www.guaranteefund.org/bg/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%B5%D0%BD-%D1%86%D0%B5%D0%BD%D1%82%D1%8A%D1%80-%D0%B8-%D1%81%D0%BF%D1%80%D0%B0%D0%B2%D0%BA%D0%B8/%D1%83%D1%81%D0%BB%D1%83%D0%B3%D0%B8/%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B0-%D0%B7%D0%B0-%D0%B2%D0%B0%D0%BB%D0%B8%D0%B4%D0%BD%D0%B0-%D0%B7%D0%B0%D1%81%D1%82%D1%80%D0%B0%D1%85%D0%BE%D0%B2%D0%BA%D0%B0-%D0%B3%D1%80a%D0%B6%D0%B4a%D0%BD%D1%81%D0%BAa-%D0%BE%D1%82%D0%B3%D0%BE%D0%B2%D0%BE%D1%80%D0%BD%D0%BE%D1%81%D1%82-%D0%BD%D0%B0-%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D0%B8%D1%81%D1%82%D0%B8%D1%82%D0%B5";
-    private static final Logger logger = LoggerFactory.getLogger(VignetteService.class);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InsuranceService.class);
 
     @Transactional
     public void insuranceCheck(Car car) {
@@ -61,6 +62,8 @@ public class InsuranceService {
 
         insurance.setCar(car);
         car.setInsurance(insurance);
+
+        LOGGER.info("Insurance check for car: {}", car.getPlateNumber());
     }
 
     public InsuranceResponse insuranceCheckExternal(String plateNumber) {
@@ -95,7 +98,7 @@ public class InsuranceService {
                     String.class
             );
         } catch (Exception e) {
-            logger.error("Unsuccessful insurance checking for : " + plateNumber, e.getMessage(), e);
+            LOGGER.error("Unsuccessful insurance checking for : {}", plateNumber, e);
             return insuranceResponse;
         }
         String patternString = "<td style=\"background:#f2f2f2; text-align:left; padding:.3rem; font-weight:400;vertical-align:top\"><a[^>]*>([^<]*)</a></td>\\s*" +

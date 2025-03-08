@@ -1,4 +1,4 @@
-package com.carmate.security.util;
+package com.carmate.config.security;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

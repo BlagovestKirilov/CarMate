@@ -30,7 +30,7 @@ public class VignetteService {
 
     private static final String BG_TOLL_ENDPOINT = "https://check.bgtoll.bg/check/vignette/plate/BG/";
 
-    private static final Logger logger = LoggerFactory.getLogger(VignetteService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VignetteService.class);
 
     @Transactional
     public void vignetteCheck(Car car) {
@@ -52,17 +52,18 @@ public class VignetteService {
         }
 
         car.setVignette(vignette);
+
+        LOGGER.info("Vignette check for car: {}", car.getPlateNumber());
     }
 
     public VignetteResponse vignetteCheckExternal(String plateNumber) {
         try {
             ResponseEntity<VignetteResponse> response = restTemplate.getForEntity(BG_TOLL_ENDPOINT + plateNumber, VignetteResponse.class);
             if (response.getBody() != null) {
-                logger.info("Successful checking vignette for : " + plateNumber);
                 return response.getBody();
             }
         } catch (Exception e) {
-            logger.error("Unsuccessful checking vignette for : " + plateNumber, e.getMessage(), e);
+            LOGGER.error("Unsuccessful checking vignette for : {}", plateNumber, e);
         }
 
         return null;

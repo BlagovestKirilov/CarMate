@@ -7,6 +7,8 @@ import com.carmate.entity.obligation.external.ObligationResponseResult;
 import com.carmate.entity.obligation.external.ObligationsData;
 import com.carmate.repository.CarRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,17 @@ import java.util.List;
 
 @Service
 public class ObligationService {
+
+    private final CarRepository carRepository;
+
     @Autowired
-    private CarRepository carRepository;
+    public ObligationService(CarRepository carRepository) {
+        this.carRepository = carRepository;
+    }
 
     private static final String OBLIGATION_ENDPOINT = "https://e-uslugi.mvr.bg/api/Obligations/AND?obligatedPersonType=1&additinalDataForObligatedPersonType=3&mode=1&obligedPersonIdent=%s&foreignVehicleNumber=%s";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ObligationService.class);
 
     @Transactional
     public void obligationCheck(Car car) {
@@ -37,6 +46,8 @@ public class ObligationService {
 
         obligation.setCar(car);
         car.setObligation(obligation);
+
+        LOGGER.info("Obligation check for car: {}", car.getPlateNumber());
     }
 
     public ObligationResponseResult obligationCheckExternal(String plateNumber, String egn) {
@@ -57,7 +68,7 @@ public class ObligationService {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error"); //TODO
+            LOGGER.error("Obligation check failed", e);
         }
         return obligationResponseResult;
     }

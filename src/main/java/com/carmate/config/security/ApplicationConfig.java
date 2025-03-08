@@ -1,7 +1,6 @@
-package com.carmate.security.config;
+package com.carmate.config.security;
 
 import com.carmate.repository.AccountRepository;
-import com.carmate.security.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +47,7 @@ public class ApplicationConfig {
                         .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password").permitAll()
                         .anyRequest().authenticated()
                 )
-         .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

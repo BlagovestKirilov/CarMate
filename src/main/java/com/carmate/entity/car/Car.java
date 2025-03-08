@@ -1,6 +1,7 @@
 package com.carmate.entity.car;
 
 import com.carmate.entity.account.Account;
+import com.carmate.entity.expense.Expense;
 import com.carmate.entity.insurance.Insurance;
 import com.carmate.entity.obligation.Obligation;
 import com.carmate.entity.technicalReview.TechnicalReview;
@@ -36,6 +37,9 @@ public class Car {
 
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripSheet> tripSheets;
+
+    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Expense> expenses;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "vignette_id", referencedColumnName = "id")

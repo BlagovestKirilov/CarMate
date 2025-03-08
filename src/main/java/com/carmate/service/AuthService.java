@@ -1,5 +1,6 @@
-package com.carmate.security.util;
+package com.carmate.service;
 
+import com.carmate.config.security.JwtUtil;
 import com.carmate.entity.account.Account;
 import com.carmate.entity.account.AccountForgotPasswordRequest;
 import com.carmate.entity.account.AccountRegistrationRequest;
@@ -10,7 +11,6 @@ import com.carmate.enums.RegistrationStatus;
 import com.carmate.repository.AccountForgotPasswordRequestRepository;
 import com.carmate.repository.AccountRegistrationRequestRepository;
 import com.carmate.repository.AccountRepository;
-import com.carmate.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +118,7 @@ public class AuthService {
         Account account = getAccountByPrincipal();
         account.setToken(null);
         account.setNotificationToken(null);
+        LOGGER.info("{} logged out", account.getEmail());
         accountRepository.save(account);
     }
 
@@ -140,6 +141,7 @@ public class AuthService {
         String token = jwtUtil.generateToken(email, existingUser.get().getRole().toString(), existingUser.get().getLanguage().toString());
         accountForgotPasswordRequest.setToken(token);
         accountForgotPasswordRequestRepository.save(accountForgotPasswordRequest);
+        LOGGER.info("AccountForgotPasswordRequest saved for: {}", email);
         return token;
     }
 
@@ -171,7 +173,7 @@ public class AuthService {
         accountForgotPasswordRequest.setStatus(ForgotPasswordStatus.CONFIRMED);
 
         accountForgotPasswordRequestRepository.save(accountForgotPasswordRequest);
-
+        LOGGER.info("AccountForgotPasswordRequest confirmed for: {}", email);
         return newToken;
     }
 
@@ -198,6 +200,7 @@ public class AuthService {
         existingAccount.setPassword(encoder.encode(newPassword));
         accountRepository.save(existingAccount);
         accountForgotPasswordRequestRepository.save(accountForgotPasswordRequest);
+        LOGGER.info("Password changed for account with email: {}", existingAccount.getEmail());
     }
 
     private String getRandomNumber() {

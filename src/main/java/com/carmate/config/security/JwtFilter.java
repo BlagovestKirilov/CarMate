@@ -1,6 +1,5 @@
-package com.carmate.security.config;
+package com.carmate.config.security;
 
-import com.carmate.security.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +26,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = header.substring(7); // Remove "Bearer "
+        String token = header.substring(7);
         String email = jwtUtil.validateToken(token);
 
         if (email != null) {
