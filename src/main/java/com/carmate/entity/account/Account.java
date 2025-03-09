@@ -5,6 +5,7 @@ import com.carmate.entity.notification.Notification;
 import com.carmate.enums.AccountRoleEnum;
 import com.carmate.enums.LanguageEnum;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,6 +25,7 @@ public class Account implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Email
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -43,10 +45,10 @@ public class Account implements UserDetails {
 
     private String notificationToken;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Car> cars;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notifications;
 
     @Override

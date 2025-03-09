@@ -48,7 +48,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("token", token));
     }
 
-    @PostMapping("/confirm-forgot-password") //confirmation
+    @PostMapping("/confirm-forgot-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request,
                                            @RequestHeader(name = "Authorization") String authorizationHeader) {
         String token = authService.confirmForgotPassword(request.get("email"), request.get("code"), authorizationHeader);
@@ -59,6 +59,12 @@ public class AuthController {
     public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request,
                                             @RequestHeader(name = "Authorization") String authorizationHeader) {
         authService.changePassword(request.get("newPassword"), authorizationHeader);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/delete-account")
+    public ResponseEntity<?> deleteAccount() {
+        authService.deleteAccount();
         return ResponseEntity.ok().build();
     }
 }

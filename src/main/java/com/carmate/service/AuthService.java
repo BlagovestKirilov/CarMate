@@ -203,6 +203,12 @@ public class AuthService {
         LOGGER.info("Password changed for account with email: {}", existingAccount.getEmail());
     }
 
+    public void deleteAccount() {
+        Account account = getAccountByPrincipal();
+        accountRepository.delete(account);
+        LOGGER.info("Deleted account with email: {}", account.getEmail());
+    }
+
     private String getRandomNumber() {
         return String.valueOf(100000 + random.nextInt(900000));
     }
