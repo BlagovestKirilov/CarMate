@@ -44,7 +44,7 @@ public class ApplicationConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password", "/auth/confirmRegistration").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);

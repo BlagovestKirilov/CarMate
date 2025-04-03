@@ -71,7 +71,7 @@ public class AuthService {
     }
 
 
-    private AccountRegistrationRequest generateAccountRegistrationRequest(String email, String password, String accountName) {
+    private void generateAccountRegistrationRequest(String email, String password, String accountName) {
         AccountRegistrationRequest accountRegistrationRequest = new AccountRegistrationRequest();
         accountRegistrationRequest.setEmail(email);
         accountRegistrationRequest.setAccountName(accountName);
@@ -81,18 +81,15 @@ public class AuthService {
         emailService.sendEmail(email, "Confirmation code", "Your confirmation code is " + randomNumber);
         accountRegistrationRequest.setConfirmationCode(encoder.encode(randomNumber));
         accountRegistrationRequestRepository.save(accountRegistrationRequest);
-        return accountRegistrationRequest;
     }
 
-    public String register(String email, String password, String accountName) {
+    public void register(String email, String password, String accountName) {
         Optional<Account> existingUser = accountRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             throw new RuntimeException("Email already in use");
         }
 
-        AccountRegistrationRequest accountRegistrationRequest = generateAccountRegistrationRequest(email, password, accountName);
-
-        return jwtUtil.generateToken(email, accountRegistrationRequest.getRole().toString(), LanguageEnum.BULGARIAN.toString());
+        generateAccountRegistrationRequest(email, password, accountName);
     }
 
     public String login(String email, String password) {
