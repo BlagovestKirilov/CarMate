@@ -5,15 +5,19 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
 
-    public JwtFilter(JwtUtil jwtUtil) {
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -30,10 +34,11 @@ public class JwtFilter extends OncePerRequestFilter {
         String email = jwtUtil.validateToken(token);
 
         if (email != null) {
-            SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(email));
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            SecurityContextHolder.getContext().setAuthentication(
+                    new JwtAuthentication(email, userDetails.getAuthorities()));
         }
 
         chain.doFilter(request, response);
     }
 }
-

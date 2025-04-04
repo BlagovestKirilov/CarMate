@@ -19,6 +19,4 @@ public class VehicleSupportDTO {
     private String address;
 
     private String phoneNumber;
-
-    private String description;
 }

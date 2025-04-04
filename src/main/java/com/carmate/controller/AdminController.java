@@ -1,5 +1,6 @@
 package com.carmate.controller;
 
+import com.carmate.config.security.RequiresAdmin;
 import com.carmate.entity.tripSheet.TripSheetDTO;
 import com.carmate.service.CarService;
 import com.carmate.service.PdfService;
@@ -21,6 +22,7 @@ public class AdminController {
         this.pdfService = pdfService;
     }
 
+    @RequiresAdmin
     @PostMapping(value = "/generate-pdf")
     public ResponseEntity<?> generateTripSheetPdf(@RequestBody List<Long> tripSheetIds) {
         try {
@@ -31,18 +33,21 @@ public class AdminController {
         }
     }
 
+    @RequiresAdmin
     @GetMapping("/get-trip-sheet/{carID}")
     public ResponseEntity<List<TripSheetDTO>> getTripSheet(@PathVariable Long carID) {
         List<TripSheetDTO> tripSheetDTOS = carService.getTripSheets(carID);
         return ResponseEntity.ok(tripSheetDTOS);
     }
 
+    @RequiresAdmin
     @GetMapping("/get-trip-sheet-admin")
     public ResponseEntity<List<TripSheetDTO>> getTripSheetAdmin() {
         List<TripSheetDTO> tripSheetDTOS = carService.getTripSheetsAdmin();
         return ResponseEntity.ok(tripSheetDTOS);
     }
 
+    @RequiresAdmin
     @DeleteMapping("/delete-trip-sheet/{tripSheetID}")
     public ResponseEntity<Void> deleteTripSheet(@PathVariable Long tripSheetID) {
         carService.deleteTripSheet(tripSheetID);

@@ -4,6 +4,8 @@ import com.carmate.entity.vehicleSupport.VehicleSupport;
 import com.carmate.entity.vehicleSupport.VehicleSupportDTO;
 import com.carmate.enums.VehicleSupportType;
 import com.carmate.repository.VehicleSupportRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 public class VehicleSupportService {
 
     private final VehicleSupportRepository vehicleSupportRepository;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VehicleSupportService.class);
 
     @Autowired
     public VehicleSupportService(VehicleSupportRepository vehicleSupportRepository) {
@@ -29,7 +33,6 @@ public class VehicleSupportService {
                         .address(vehicleSupport.getAddress())
                         .type(vehicleSupport.getType().toString())
                         .town(vehicleSupport.getTown())
-                        .description(vehicleSupport.getDescription())
                         .phoneNumber(vehicleSupport.getPhoneNumber())
                         .build()
                 )       .collect(Collectors.toList());
@@ -41,9 +44,15 @@ public class VehicleSupportService {
                 .address(vehicleSupportDTO.getAddress())
                 .type(VehicleSupportType.valueOf(vehicleSupportDTO.getType()))
                 .town(vehicleSupportDTO.getTown())
-                .description(vehicleSupportDTO.getDescription())
                 .phoneNumber(vehicleSupportDTO.getPhoneNumber())
                 .build();
         vehicleSupportRepository.save(vehicleSupport);
+    }
+
+
+    public void deleteVehicleSupport(Long vehicleSupportID) {
+        VehicleSupport vehicleSupport = vehicleSupportRepository.findById(vehicleSupportID).orElseThrow();
+        vehicleSupportRepository.delete(vehicleSupport);
+        LOGGER.info("Deleting vehicle support with ID: {}", vehicleSupportID);
     }
 }
