@@ -1,9 +1,9 @@
 package com.carmate.service.external;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import com.carmate.entity.insurance.Insurance;
 import com.carmate.entity.insurance.external.InsuranceResponse;
-import com.carmate.repository.CarRepository;
+import com.carmate.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +30,12 @@ import java.util.regex.Pattern;
 public class InsuranceService {
 
     private final RestTemplate restTemplate;
-    private final CarRepository carRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Autowired
-    public InsuranceService(RestTemplate restTemplate, CarRepository carRepository) {
+    public InsuranceService(RestTemplate restTemplate, VehicleRepository vehicleRepository) {
         this.restTemplate = restTemplate;
-        this.carRepository = carRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     private static final String GUARANTEE_FUND_ENDPOINT = "https://www.guaranteefund.org/bg/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%B5%D0%BD-%D1%86%D0%B5%D0%BD%D1%82%D1%8A%D1%80-%D0%B8-%D1%81%D0%BF%D1%80%D0%B0%D0%B2%D0%BA%D0%B8/%D1%83%D1%81%D0%BB%D1%83%D0%B3%D0%B8/%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B0-%D0%B7%D0%B0-%D0%B2%D0%B0%D0%BB%D0%B8%D0%B4%D0%BD%D0%B0-%D0%B7%D0%B0%D1%81%D1%82%D1%80%D0%B0%D1%85%D0%BE%D0%B2%D0%BA%D0%B0-%D0%B3%D1%80a%D0%B6%D0%B4a%D0%BD%D1%81%D0%BAa-%D0%BE%D1%82%D0%B3%D0%BE%D0%B2%D0%BE%D1%80%D0%BD%D0%BE%D1%81%D1%82-%D0%BD%D0%B0-%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D0%B8%D1%81%D1%82%D0%B8%D1%82%D0%B5";
@@ -43,9 +43,9 @@ public class InsuranceService {
     private static final Logger LOGGER = LoggerFactory.getLogger(InsuranceService.class);
 
     @Transactional
-    public void insuranceCheck(Car car) {
-        InsuranceResponse insuranceResponse = insuranceCheckExternal(car.getPlateNumber());
-        Insurance insurance = car.getInsurance() != null ? car.getInsurance() : new Insurance();
+    public void insuranceCheck(Vehicle vehicle) {
+        InsuranceResponse insuranceResponse = insuranceCheckExternal(vehicle.getPlateNumber());
+        Insurance insurance = vehicle.getInsurance() != null ? vehicle.getInsurance() : new Insurance();
         if (insuranceResponse.getInsurer() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
             try {
@@ -60,10 +60,10 @@ public class InsuranceService {
             insurance.setIsActive(Boolean.FALSE);
         }
 
-        insurance.setCar(car);
-        car.setInsurance(insurance);
+        insurance.setVehicle(vehicle);
+        vehicle.setInsurance(insurance);
 
-        LOGGER.info("Insurance check for car: {}", car.getPlateNumber());
+        LOGGER.info("Insurance check for vehicle: {}", vehicle.getPlateNumber());
     }
 
     public InsuranceResponse insuranceCheckExternal(String plateNumber) {
@@ -122,10 +122,10 @@ public class InsuranceService {
 
     @Transactional
     public void insuranceScheduler() {
-        List<Car> expiringInsuranceCars = carRepository.findCarsWithExpiringInsurance();
-        expiringInsuranceCars.forEach(car -> {
-            insuranceCheck(car);
-            carRepository.save(car);
+        List<Vehicle> expiringInsuranceVehicles = vehicleRepository.findVehiclesWithExpiringInsurance();
+        expiringInsuranceVehicles.forEach(vehicle -> {
+            insuranceCheck(vehicle);
+            vehicleRepository.save(vehicle);
         });
     }
 }

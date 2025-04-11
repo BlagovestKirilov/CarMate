@@ -1,4 +1,4 @@
-package com.carmate.entity.car;
+package com.carmate.entity.vehicle;
 
 import com.carmate.entity.account.Account;
 import com.carmate.entity.expense.Expense;
@@ -17,7 +17,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-public class Car {
+public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,10 +35,10 @@ public class Car {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripSheet> tripSheets;
 
-    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)

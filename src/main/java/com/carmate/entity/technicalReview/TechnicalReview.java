@@ -1,6 +1,6 @@
 package com.carmate.entity.technicalReview;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class TechnicalReview {
     private Long id;
 
     @OneToOne(mappedBy = "technicalReview")
-    private Car car;
+    private Vehicle vehicle;
 
     private Boolean isActive;
 

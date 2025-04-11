@@ -1,9 +1,9 @@
 package com.carmate.service.external;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import com.carmate.entity.technicalReview.TechnicalReview;
 import com.carmate.entity.technicalReview.external.TechnicalReviewResponse;
-import com.carmate.repository.CarRepository;
+import com.carmate.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +27,11 @@ import java.util.regex.Pattern;
 @Service
 public class TechnicalReviewService {
 
-    private final CarRepository carRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Autowired
-    public TechnicalReviewService(CarRepository carRepository) {
-        this.carRepository = carRepository;
+    public TechnicalReviewService(VehicleRepository vehicleRepository) {
+        this.vehicleRepository = vehicleRepository;
     }
 
     private static final String TECHNICAL_REVIEW_ENDPOINT = "https://myve.bg/api/get/gtp";
@@ -39,8 +39,8 @@ public class TechnicalReviewService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TechnicalReviewService.class);
 
     @Transactional
-    public void technicalReviewCheck(Car car) {
-        TechnicalReviewResponse technicalReviewResponse = technicalReviewCheckExternal(car.getPlateNumber());
+    public void technicalReviewCheck(Vehicle vehicle) {
+        TechnicalReviewResponse technicalReviewResponse = technicalReviewCheckExternal(vehicle.getPlateNumber());
         boolean isValid = false;
         Date expiryDate = null;
 
@@ -64,14 +64,14 @@ public class TechnicalReviewService {
             }
         }
 
-        TechnicalReview technicalReview = car.getTechnicalReview() != null ? car.getTechnicalReview() : new TechnicalReview();
+        TechnicalReview technicalReview = vehicle.getTechnicalReview() != null ? vehicle.getTechnicalReview() : new TechnicalReview();
         technicalReview.setIsActive(isValid);
         technicalReview.setEndDate(expiryDate);
 
-        technicalReview.setCar(car);
-        car.setTechnicalReview(technicalReview);
+        technicalReview.setVehicle(vehicle);
+        vehicle.setTechnicalReview(technicalReview);
 
-        LOGGER.info("Technical review check for car: {}", car.getPlateNumber());
+        LOGGER.info("Technical review check for vehicle: {}", vehicle.getPlateNumber());
     }
 
     public TechnicalReviewResponse technicalReviewCheckExternal(String plateNumber) {
@@ -86,7 +86,7 @@ public class TechnicalReviewService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/x-www-form-urlencoded");
-        // Create the request entity
+
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
         ResponseEntity<TechnicalReviewResponse> response;
         try {
@@ -106,10 +106,10 @@ public class TechnicalReviewService {
 
     @Transactional
     public void technicalReviewScheduler() {
-        List<Car> expiringTechnicalReviewCard = carRepository.findCarsWithExpiringTechnicalReview();
-        expiringTechnicalReviewCard.forEach(car -> {
-            technicalReviewCheck(car);
-            carRepository.save(car);
+        List<Vehicle> expiringTechnicalReviewVehicles = vehicleRepository.findVehiclesWithExpiringTechnicalReview();
+        expiringTechnicalReviewVehicles.forEach(vehicle -> {
+            technicalReviewCheck(vehicle);
+            vehicleRepository.save(vehicle);
         });
     }
 }

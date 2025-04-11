@@ -1,6 +1,6 @@
 package com.carmate.entity.obligation;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class Obligation {
     private Long id;
 
     @OneToOne(mappedBy = "obligation")
-    private Car car;
+    private Vehicle vehicle;
 
     private Integer obligationsCount;
 

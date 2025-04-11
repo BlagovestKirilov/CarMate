@@ -13,7 +13,7 @@ import java.time.LocalTime;
 public class TripSheetDTO {
     private Long id;
 
-    private Long carID;
+    private Long vehicleID;
 
     private String carName;
 

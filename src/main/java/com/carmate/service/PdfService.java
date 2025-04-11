@@ -120,8 +120,8 @@ public class PdfService {
     private void addRow(PdfPTable table, TripSheet tripSheet, boolean isEvenRow, Font cellFont) {
         BaseColor rowColor = isEvenRow ? BaseColor.WHITE : new BaseColor(240, 240, 240);
 
-        addCell(table, tripSheet.getCar().getAccount().getEmail(), rowColor, cellFont);
-        addCell(table, tripSheet.getCar().getPlateNumber(), rowColor, cellFont);
+        addCell(table, tripSheet.getVehicle().getAccount().getEmail(), rowColor, cellFont);
+        addCell(table, tripSheet.getVehicle().getPlateNumber(), rowColor, cellFont);
         addCell(table, tripSheet.getDepartureDate().format(dateTimeFormatter), rowColor, cellFont);
         addCell(table, tripSheet.getDepartureTime().toString(), rowColor, cellFont);
         addCell(table, tripSheet.getDepartureLocation(), rowColor, cellFont);

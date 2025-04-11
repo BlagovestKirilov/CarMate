@@ -31,5 +31,5 @@ public class Notification {
 
     private Date notificationDate;
 
-    private String carName;
+    private String vehicleName;
 }

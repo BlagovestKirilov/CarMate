@@ -1,11 +1,11 @@
 package com.carmate.service.external;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import com.carmate.entity.obligation.external.Obligation;
 import com.carmate.entity.obligation.external.ObligationResponse;
 import com.carmate.entity.obligation.external.ObligationResponseResult;
 import com.carmate.entity.obligation.external.ObligationsData;
-import com.carmate.repository.CarRepository;
+import com.carmate.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ import java.util.List;
 @Service
 public class ObligationService {
 
-    private final CarRepository carRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Autowired
-    public ObligationService(CarRepository carRepository) {
-        this.carRepository = carRepository;
+    public ObligationService(VehicleRepository vehicleRepository) {
+        this.vehicleRepository = vehicleRepository;
     }
 
     private static final String OBLIGATION_ENDPOINT = "https://e-uslugi.mvr.bg/api/Obligations/AND?obligatedPersonType=1&additinalDataForObligatedPersonType=3&mode=1&obligedPersonIdent=%s&foreignVehicleNumber=%s";
@@ -31,10 +31,10 @@ public class ObligationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ObligationService.class);
 
     @Transactional
-    public void obligationCheck(Car car) {
-        ObligationResponseResult obligationResponseResult = obligationCheckExternal(car.getPlateNumber(), car.getEgn());
+    public void obligationCheck(Vehicle vehicle) {
+        ObligationResponseResult obligationResponseResult = obligationCheckExternal(vehicle.getPlateNumber(), vehicle.getEgn());
 
-        com.carmate.entity.obligation.Obligation obligation = car.getObligation() != null ? car.getObligation() : new com.carmate.entity.obligation.Obligation();
+        com.carmate.entity.obligation.Obligation obligation = vehicle.getObligation() != null ? vehicle.getObligation() : new com.carmate.entity.obligation.Obligation();
 
         if (obligationResponseResult != null) {
             obligation.setObligationsCount(obligationResponseResult.getObligationsCount());
@@ -44,10 +44,10 @@ public class ObligationService {
             obligation.setObligationSumAmount(0);
         }
 
-        obligation.setCar(car);
-        car.setObligation(obligation);
+        obligation.setVehicle(vehicle);
+        vehicle.setObligation(obligation);
 
-        LOGGER.info("Obligation check for car: {}", car.getPlateNumber());
+        LOGGER.info("Obligation check for car: {}", vehicle.getPlateNumber());
     }
 
     public ObligationResponseResult obligationCheckExternal(String plateNumber, String egn) {
@@ -75,10 +75,10 @@ public class ObligationService {
 
     @Transactional
     public void obligationScheduler() {
-        List<Car> cars = carRepository.findAll();
-        for (Car car : cars) {
-            obligationCheck(car);
-            carRepository.save(car);
+        List<Vehicle> vehicles = vehicleRepository.findAll();
+        for (Vehicle vehicle : vehicles) {
+            obligationCheck(vehicle);
+            vehicleRepository.save(vehicle);
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.carmate.entity.car;
+package com.carmate.entity.vehicle;
 
 import lombok.*;
 
@@ -8,6 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class OilChangeDTO {
-    private Long carId;
+    private Long vehicleID;
     private Long odometerValue;
 }

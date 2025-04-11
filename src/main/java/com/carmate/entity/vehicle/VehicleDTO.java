@@ -1,4 +1,4 @@
-package com.carmate.entity.car;
+package com.carmate.entity.vehicle;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CarDTO {
+public class VehicleDTO {
     private Long id;
 
     private String name;

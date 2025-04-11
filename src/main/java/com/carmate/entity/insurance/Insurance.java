@@ -1,6 +1,6 @@
 package com.carmate.entity.insurance;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,5 +23,5 @@ public class Insurance {
     private Date endDate;
 
     @OneToOne(mappedBy = "insurance")
-    private Car car;
+    private Vehicle vehicle;
 }

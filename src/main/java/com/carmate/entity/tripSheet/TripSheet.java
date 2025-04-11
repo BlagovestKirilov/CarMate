@@ -1,7 +1,7 @@
 package com.carmate.entity.tripSheet;
 
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,8 +21,8 @@ public class TripSheet {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "car_id")
-    private Car car;
+    @JoinColumn(name = "vehicle_id")
+    private Vehicle vehicle;
 
     @Column(nullable = false)
     private LocalDate departureDate;

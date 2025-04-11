@@ -1,9 +1,9 @@
 package com.carmate.service.external;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import com.carmate.entity.vignette.Vignette;
 import com.carmate.entity.vignette.external.VignetteResponse;
-import com.carmate.repository.CarRepository;
+import com.carmate.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +20,12 @@ import java.util.List;
 public class VignetteService {
 
     private final RestTemplate restTemplate;
-    private final CarRepository carRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Autowired
-    public VignetteService(RestTemplate restTemplate, CarRepository carRepository) {
+    public VignetteService(RestTemplate restTemplate, VehicleRepository vehicleRepository) {
         this.restTemplate = restTemplate;
-        this.carRepository = carRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     private static final String BG_TOLL_ENDPOINT = "https://check.bgtoll.bg/check/vignette/plate/BG/";
@@ -33,10 +33,10 @@ public class VignetteService {
     private static final Logger LOGGER = LoggerFactory.getLogger(VignetteService.class);
 
     @Transactional
-    public void vignetteCheck(Car car) {
-        Vignette vignette = car.getVignette() != null ? car.getVignette() : new Vignette();
+    public void vignetteCheck(Vehicle vehicle) {
+        Vignette vignette = vehicle.getVignette() != null ? vehicle.getVignette() : new Vignette();
 
-        VignetteResponse vignetteResponse = vignetteCheckExternal(car.getPlateNumber());
+        VignetteResponse vignetteResponse = vignetteCheckExternal(vehicle.getPlateNumber());
 
         if (vignetteResponse.getVignette() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
@@ -51,9 +51,9 @@ public class VignetteService {
             vignette.setIsActive(Boolean.FALSE);
         }
 
-        car.setVignette(vignette);
+        vehicle.setVignette(vignette);
 
-        LOGGER.info("Vignette check for car: {}", car.getPlateNumber());
+        LOGGER.info("Vignette check for vehicle: {}", vehicle.getPlateNumber());
     }
 
     public VignetteResponse vignetteCheckExternal(String plateNumber) {
@@ -71,10 +71,10 @@ public class VignetteService {
 
     @Transactional
     public void vignetteScheduler() {
-        List<Car> expiringVignettesCars = carRepository.findCarsWithExpiringVignettes();
-        expiringVignettesCars.forEach(car -> {
-            vignetteCheck(car);
-            carRepository.save(car);
+        List<Vehicle> expiringVignettesVehicles = vehicleRepository.findVehiclesWithExpiringVignettes();
+        expiringVignettesVehicles.forEach(vehicle -> {
+            vignetteCheck(vehicle);
+            vehicleRepository.save(vehicle);
         });
     }
 }

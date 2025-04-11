@@ -1,4 +1,4 @@
-package com.carmate.entity.car;
+package com.carmate.entity.vehicle;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CarSaveDTO {
+public class VehicleSaveDTO {
 
     private String name;
 

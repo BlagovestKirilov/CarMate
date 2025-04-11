@@ -1,13 +1,13 @@
 package com.carmate.service;
 
 import com.carmate.entity.account.Account;
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import com.carmate.entity.notification.Notification;
 import com.carmate.entity.notification.NotificationDTO;
 import com.carmate.entity.notification.NotificationType;
 import com.carmate.enums.LanguageEnum;
 import com.carmate.repository.AccountRepository;
-import com.carmate.repository.CarRepository;
+import com.carmate.repository.VehicleRepository;
 import com.carmate.repository.NotificationRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
-    private final CarRepository carRepository;
+    private final VehicleRepository vehicleRepository;
     private final NotificationRepository notificationRepository;
     private final AccountRepository accountRepository;
     private final AuthService authService;
@@ -36,12 +36,12 @@ public class NotificationService {
 
     @Autowired
     public NotificationService(
-            CarRepository carRepository,
+            VehicleRepository vehicleRepository,
             NotificationRepository notificationRepository,
             AccountRepository accountRepository,
             AuthService authService
     ) {
-        this.carRepository = carRepository;
+        this.vehicleRepository = vehicleRepository;
         this.notificationRepository = notificationRepository;
         this.accountRepository = accountRepository;
         this.authService = authService;
@@ -49,21 +49,21 @@ public class NotificationService {
 
     @Transactional
     public void generateNotifications() {
-        List<Car> cars = carRepository.findAll();
+        List<Vehicle> vehicles = vehicleRepository.findAll();
         Date currentDate = new Date();
         List<Notification> resultNotification = new ArrayList<>();
-        for (Car car : cars) {
-            if (car.getVignette().getIsActive()) {
-                long vignetteExpirationDays = getDaysBetween(currentDate, car.getVignette().getEndDate());
+        for (Vehicle vehicle : vehicles) {
+            if (vehicle.getVignette().getIsActive()) {
+                long vignetteExpirationDays = getDaysBetween(currentDate, vehicle.getVignette().getEndDate());
 
                 if (vignetteExpirationDays < 300) {
                     Notification vignetteNotification = Notification.builder()
                             .notificationType(NotificationType.VIGNETTE)
-                            .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + vignetteExpirationDays + " дни.")
-                            .notificationTextEn("Vehicle's vignette with plate number " + car.getPlateNumber() + " expires in " + vignetteExpirationDays + " days.")
+                            .notificationText("Винетката на МПС с регистрационен номер " + vehicle.getPlateNumber() + " изтича след " + vignetteExpirationDays + " дни.")
+                            .notificationTextEn("Vehicle's vignette with plate number " + vehicle.getPlateNumber() + " expires in " + vignetteExpirationDays + " days.")
                             .notificationDate(currentDate)
-                            .account(car.getAccount())
-                            .carName(car.getName())
+                            .account(vehicle.getAccount())
+                            .vehicleName(vehicle.getName())
                             .build();
 
                     resultNotification.add(vignetteNotification);
@@ -71,27 +71,27 @@ public class NotificationService {
             } else {
                 Notification vignetteNotification = Notification.builder()
                         .notificationType(NotificationType.VIGNETTE)
-                        .notificationText("Винетката на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
-                        .notificationTextEn("Vehicle's Vignette with plate number " + car.getPlateNumber() + " is expired.")
+                        .notificationText("Винетката на МПС с регистрационен номер " + vehicle.getPlateNumber() + " е изтекла!")
+                        .notificationTextEn("Vehicle's Vignette with plate number " + vehicle.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
-                        .account(car.getAccount())
-                        .carName(car.getName())
+                        .account(vehicle.getAccount())
+                        .vehicleName(vehicle.getName())
                         .build();
 
                 resultNotification.add(vignetteNotification);
             }
 
-            if (car.getInsurance().getIsActive()) {
-                long insuranceExpirationDays = getDaysBetween(currentDate, car.getInsurance().getEndDate());
+            if (vehicle.getInsurance().getIsActive()) {
+                long insuranceExpirationDays = getDaysBetween(currentDate, vehicle.getInsurance().getEndDate());
 
                 if (insuranceExpirationDays < 300) {
                     Notification insuranceNotification = Notification.builder()
                             .notificationType(NotificationType.INSURANCE)
-                            .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + insuranceExpirationDays + " дни.")
-                            .notificationTextEn("Vehicle's insurance with plate number " + car.getPlateNumber() + " expires in " + insuranceExpirationDays + " days.")
+                            .notificationText("Застраховката на МПС с регистрационен номер " + vehicle.getPlateNumber() + " изтича след " + insuranceExpirationDays + " дни.")
+                            .notificationTextEn("Vehicle's insurance with plate number " + vehicle.getPlateNumber() + " expires in " + insuranceExpirationDays + " days.")
                             .notificationDate(currentDate)
-                            .account(car.getAccount())
-                            .carName(car.getName())
+                            .account(vehicle.getAccount())
+                            .vehicleName(vehicle.getName())
                             .build();
 
                     resultNotification.add(insuranceNotification);
@@ -99,28 +99,28 @@ public class NotificationService {
             } else {
                 Notification insuranceNotification = Notification.builder()
                         .notificationType(NotificationType.INSURANCE)
-                        .notificationText("Застраховката на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
-                        .notificationTextEn("Vehicle's insurance with plate number " + car.getPlateNumber() + " is expired.")
+                        .notificationText("Застраховката на МПС с регистрационен номер " + vehicle.getPlateNumber() + " е изтекла!")
+                        .notificationTextEn("Vehicle's insurance with plate number " + vehicle.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
-                        .account(car.getAccount())
-                        .carName(car.getName())
+                        .account(vehicle.getAccount())
+                        .vehicleName(vehicle.getName())
                         .build();
 
                 resultNotification.add(insuranceNotification);
             }
 
-            if (car.getTechnicalReview().getIsActive()) {
-                long technicalReviewExpirationDays = car.getTechnicalReview().getEndDate() != null ?
-                        getDaysBetween(currentDate, car.getTechnicalReview().getEndDate()) : 365L;
+            if (vehicle.getTechnicalReview().getIsActive()) {
+                long technicalReviewExpirationDays = vehicle.getTechnicalReview().getEndDate() != null ?
+                        getDaysBetween(currentDate, vehicle.getTechnicalReview().getEndDate()) : 365L;
 
                 if (technicalReviewExpirationDays < 300) {
                     Notification technicalReviewNotification = Notification.builder()
                             .notificationType(NotificationType.TECHNICAL_REVIEW)
-                            .notificationText("Техническият преглед на МПС с регистрационен номер " + car.getPlateNumber() + " изтича след " + technicalReviewExpirationDays + " дни.")
-                            .notificationTextEn("Vehicle's technical review with plate number " + car.getPlateNumber() + " expires in " + technicalReviewExpirationDays + " days.")
+                            .notificationText("Техническият преглед на МПС с регистрационен номер " + vehicle.getPlateNumber() + " изтича след " + technicalReviewExpirationDays + " дни.")
+                            .notificationTextEn("Vehicle's technical review with plate number " + vehicle.getPlateNumber() + " expires in " + technicalReviewExpirationDays + " days.")
                             .notificationDate(currentDate)
-                            .account(car.getAccount())
-                            .carName(car.getName())
+                            .account(vehicle.getAccount())
+                            .vehicleName(vehicle.getName())
                             .build();
 
                     resultNotification.add(technicalReviewNotification);
@@ -128,23 +128,23 @@ public class NotificationService {
             } else {
                 Notification technicalReviewNotification = Notification.builder()
                         .notificationType(NotificationType.TECHNICAL_REVIEW)
-                        .notificationText("Техническият преглед на МПС с регистрационен номер " + car.getPlateNumber() + " е изтекла!")
-                        .notificationTextEn("Vehicle's technical review with plate number " + car.getPlateNumber() + " is expired.")
+                        .notificationText("Техническият преглед на МПС с регистрационен номер " + vehicle.getPlateNumber() + " е изтекла!")
+                        .notificationTextEn("Vehicle's technical review with plate number " + vehicle.getPlateNumber() + " is expired.")
                         .notificationDate(currentDate)
-                        .carName(car.getName())
+                        .vehicleName(vehicle.getName())
                         .build();
 
                 resultNotification.add(technicalReviewNotification);
             }
 
-            if (car.getObligation().getObligationsCount() > 0) {
+            if (vehicle.getObligation().getObligationsCount() > 0) {
                 Notification obligationNotification = Notification.builder()
                         .notificationType(NotificationType.OBLIGATION)
-                        .notificationText("Имате " + car.getObligation().getObligationsCount() + " неплатени глоби с МПС с регистрационен номер " + car.getPlateNumber() + " !")
-                        .notificationTextEn("You have " + car.getObligation().getObligationsCount() + " unpaid fines with vehicle with plate number " + car.getPlateNumber() + " !")
+                        .notificationText("Имате " + vehicle.getObligation().getObligationsCount() + " неплатени глоби с МПС с регистрационен номер " + vehicle.getPlateNumber() + " !")
+                        .notificationTextEn("You have " + vehicle.getObligation().getObligationsCount() + " unpaid fines with vehicle with plate number " + vehicle.getPlateNumber() + " !")
                         .notificationDate(currentDate)
-                        .account(car.getAccount())
-                        .carName(car.getName())
+                        .account(vehicle.getAccount())
+                        .vehicleName(vehicle.getName())
                         .build();
 
                 resultNotification.add(obligationNotification);
@@ -163,7 +163,7 @@ public class NotificationService {
 
         return notifications.stream()
                 .map(notification -> new NotificationDTO(
-                        notification.getCarName(),
+                        notification.getVehicleName(),
                         notification.getNotificationText(),
                         notification.getNotificationTextEn(),
                         notification.getNotificationDate())

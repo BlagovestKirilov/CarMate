@@ -1,6 +1,6 @@
 package com.carmate.entity.account;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import com.carmate.entity.notification.Notification;
 import com.carmate.enums.AccountRoleEnum;
 import com.carmate.enums.LanguageEnum;
@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -47,7 +48,7 @@ public class Account implements UserDetails {
     private String notificationToken;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Car> cars;
+    private List<Vehicle> vehicles;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notifications;
@@ -85,5 +86,13 @@ public class Account implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return Objects.equals(id, account.id);
     }
 }

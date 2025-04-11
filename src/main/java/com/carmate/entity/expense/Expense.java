@@ -1,6 +1,6 @@
 package com.carmate.entity.expense;
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import com.carmate.enums.ExpenseType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,8 +21,8 @@ public class Expense {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "car_id", nullable = false)
-    private Car car;
+    @JoinColumn(name = "vehicle_id", nullable = false)
+    private Vehicle vehicle;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

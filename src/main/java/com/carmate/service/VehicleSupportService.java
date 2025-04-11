@@ -35,7 +35,7 @@ public class VehicleSupportService {
                         .town(vehicleSupport.getTown())
                         .phoneNumber(vehicleSupport.getPhoneNumber())
                         .build()
-                )       .collect(Collectors.toList());
+                ).collect(Collectors.toList());
     }
 
     public void saveVehicleSupport(VehicleSupportDTO vehicleSupportDTO) {
@@ -47,6 +47,7 @@ public class VehicleSupportService {
                 .phoneNumber(vehicleSupportDTO.getPhoneNumber())
                 .build();
         vehicleSupportRepository.save(vehicleSupport);
+        LOGGER.info("Vehicle support saved with name: {}", vehicleSupportDTO.getName());
     }
 
 

@@ -1,7 +1,7 @@
 package com.carmate.entity.vignette;
 
 
-import com.carmate.entity.car.Car;
+import com.carmate.entity.vehicle.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,7 +19,7 @@ public class Vignette {
     private Long id;
 
     @OneToOne(mappedBy = "vignette")
-    private Car car;
+    private Vehicle vehicle;
 
     private Boolean isActive = Boolean.FALSE;
 

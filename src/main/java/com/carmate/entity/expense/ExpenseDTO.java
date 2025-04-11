@@ -14,7 +14,7 @@ public class ExpenseDTO {
 
     private Long id;
 
-    private Long carID;
+    private Long vehicleID;
 
     private String type;
 
