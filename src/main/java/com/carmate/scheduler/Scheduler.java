@@ -40,7 +40,7 @@ public class Scheduler {
         notificationService.generateNotifications();
     }
 
-    @Scheduled(cron = "0 19 14 * * *")
+    @Scheduled(cron = "0 0 10 * * *")
     private void sendNotifications() {
         notificationService.sendCurrentDateNotification();
     }

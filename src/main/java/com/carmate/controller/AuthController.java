@@ -20,7 +20,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
-        authService.register(request.get("email"), request.get("password"), request.get("accountName"));
+        authService.register(request.get("email"), request.get("password"), request.get("accountName"), request.get("languageCode"));
         return ResponseEntity.ok().build();
     }
 

@@ -56,12 +56,13 @@ public class AuthService {
                 .findTopByEmailOrderByDateDesc(email).orElseThrow();
         if (encoder.matches(password, accountRegistrationRequest.getPassword())
                 && encoder.matches(code, accountRegistrationRequest.getConfirmationCode())) {
-            Account newUser = new Account();
-            newUser.setEmail(email);
-            newUser.setAccountName(accountRegistrationRequest.getAccountName());
-            newUser.setPassword(encoder.encode(password));
-            newUser.setRole(AccountRoleEnum.USER);
-            accountRepository.save(newUser);
+            Account account = new Account();
+            account.setEmail(email);
+            account.setAccountName(accountRegistrationRequest.getAccountName());
+            account.setPassword(encoder.encode(password));
+            account.setRole(AccountRoleEnum.USER);
+            account.setLanguage(accountRegistrationRequest.getLanguage());
+            accountRepository.save(account);
             accountRegistrationRequest.setStatus(RegistrationStatus.CONFIRMED);
             accountRegistrationRequest.setRole(AccountRoleEnum.USER);
             accountRegistrationRequestRepository.save(accountRegistrationRequest);
@@ -71,25 +72,26 @@ public class AuthService {
     }
 
 
-    private void generateAccountRegistrationRequest(String email, String password, String accountName) {
+    private void generateAccountRegistrationRequest(String email, String password, String accountName, String languageCode) {
         AccountRegistrationRequest accountRegistrationRequest = new AccountRegistrationRequest();
         accountRegistrationRequest.setEmail(email);
         accountRegistrationRequest.setAccountName(accountName);
         accountRegistrationRequest.setPassword(encoder.encode(password));
         accountRegistrationRequest.setRole(AccountRoleEnum.USER);
+        accountRegistrationRequest.setLanguage(languageCode.equals("bg") ? LanguageEnum.BULGARIAN : LanguageEnum.ENGLISH);
         String randomNumber = getRandomNumber();
         emailService.sendEmail(email, "Confirmation code", "Your confirmation code is " + randomNumber);
         accountRegistrationRequest.setConfirmationCode(encoder.encode(randomNumber));
         accountRegistrationRequestRepository.save(accountRegistrationRequest);
     }
 
-    public void register(String email, String password, String accountName) {
+    public void register(String email, String password, String accountName, String languageCode) {
         Optional<Account> existingUser = accountRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             throw new RuntimeException("Email already in use");
         }
 
-        generateAccountRegistrationRequest(email, password, accountName);
+        generateAccountRegistrationRequest(email, password, accountName, languageCode);
     }
 
     public String login(String email, String password) {

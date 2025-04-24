@@ -41,7 +41,7 @@ public class Account implements UserDetails {
     private AccountRoleEnum role;
 
     @Enumerated(EnumType.STRING)
-    private LanguageEnum language = LanguageEnum.BULGARIAN;
+    private LanguageEnum language;
 
     private String token;
 

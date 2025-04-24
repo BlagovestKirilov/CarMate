@@ -56,7 +56,7 @@ public class NotificationService {
             if (vehicle.getVignette().getIsActive()) {
                 long vignetteExpirationDays = getDaysBetween(currentDate, vehicle.getVignette().getEndDate());
 
-                if (vignetteExpirationDays < 300) {
+                if (vignetteExpirationDays < 10) {
                     Notification vignetteNotification = Notification.builder()
                             .notificationType(NotificationType.VIGNETTE)
                             .notificationText("Винетката на МПС с регистрационен номер " + vehicle.getPlateNumber() + " изтича след " + vignetteExpirationDays + " дни.")
@@ -84,7 +84,7 @@ public class NotificationService {
             if (vehicle.getInsurance().getIsActive()) {
                 long insuranceExpirationDays = getDaysBetween(currentDate, vehicle.getInsurance().getEndDate());
 
-                if (insuranceExpirationDays < 300) {
+                if (insuranceExpirationDays < 10) {
                     Notification insuranceNotification = Notification.builder()
                             .notificationType(NotificationType.INSURANCE)
                             .notificationText("Застраховката на МПС с регистрационен номер " + vehicle.getPlateNumber() + " изтича след " + insuranceExpirationDays + " дни.")
@@ -113,7 +113,7 @@ public class NotificationService {
                 long technicalReviewExpirationDays = vehicle.getTechnicalReview().getEndDate() != null ?
                         getDaysBetween(currentDate, vehicle.getTechnicalReview().getEndDate()) : 365L;
 
-                if (technicalReviewExpirationDays < 300) {
+                if (technicalReviewExpirationDays < 10) {
                     Notification technicalReviewNotification = Notification.builder()
                             .notificationType(NotificationType.TECHNICAL_REVIEW)
                             .notificationText("Техническият преглед на МПС с регистрационен номер " + vehicle.getPlateNumber() + " изтича след " + technicalReviewExpirationDays + " дни.")

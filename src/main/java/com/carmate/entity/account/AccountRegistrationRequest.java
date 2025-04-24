@@ -1,6 +1,7 @@
 package com.carmate.entity.account;
 
 import com.carmate.enums.AccountRoleEnum;
+import com.carmate.enums.LanguageEnum;
 import com.carmate.enums.RegistrationStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,6 +33,9 @@ public class AccountRegistrationRequest {
 
     @Enumerated(EnumType.STRING)
     private AccountRoleEnum role;
+
+    @Enumerated(EnumType.STRING)
+    private LanguageEnum language;
 
     private Date date = new Date();
 

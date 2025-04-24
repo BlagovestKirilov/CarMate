@@ -59,7 +59,7 @@ public class TechnicalReviewService {
                 try {
                     expiryDate = dateFormat.parse(dateString);
                 } catch (ParseException e) {
-                    e.printStackTrace();
+                    LOGGER.error(e.getMessage());
                 }
             }
         }
@@ -77,7 +77,6 @@ public class TechnicalReviewService {
     public TechnicalReviewResponse technicalReviewCheckExternal(String plateNumber) {
         RestTemplate restTemplate = new RestTemplate();
 
-        // Build the request body as a Map
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
         requestBody.add("email", "vovakof205@ploncy.com");
         requestBody.add("plate", plateNumber);
@@ -97,7 +96,7 @@ public class TechnicalReviewService {
                     TechnicalReviewResponse.class
             );
         } catch (Exception e) {
-            System.out.println("Error"); //TODO
+            LOGGER.error("Technical review: {}", e.getMessage());
             return null;
         }
 
